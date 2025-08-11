@@ -2,17 +2,24 @@
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import NavLink from '@/Components/NavLink.vue';
 import { Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
+
+const sidebarCollapsed = ref(false);
 </script>
 
 <template>
     <div>
         <div class="min-h-screen bg-gray-100 flex">
             <!-- Sidebar -->
-            <aside class="w-64 bg-white border-r border-gray-200">
-                <div class="h-16 flex items-center px-4 border-b border-gray-100">
+            <aside :class="['bg-white border-r border-gray-200 transition-all duration-300 ease-in-out', sidebarCollapsed ? 'w-16' : 'w-64']">
+                <div class="h-16 flex items-center justify-between px-4 border-b border-gray-100">
                     <Link :href="route('dashboard')">
                         <ApplicationLogo class="block h-9 w-auto fill-current text-gray-800" />
                     </Link>
+                    <button @click="sidebarCollapsed = !sidebarCollapsed" class="rounded p-2 text-gray-600 hover:bg-gray-100" :title="sidebarCollapsed ? 'Expand menu' : 'Collapse menu'">
+                        <span v-if="sidebarCollapsed">»</span>
+                        <span v-else>«</span>
+                    </button>
                 </div>
 
                 <nav class="p-4 space-y-1">
