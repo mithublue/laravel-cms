@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\News;
 use App\Models\NewsTranslation;
+use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -64,6 +65,7 @@ class NewsController extends Controller
             'is_featured' => 'boolean',
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
+            'featured_image' => 'nullable|image|max:5120',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -75,6 +77,12 @@ class NewsController extends Controller
             'published_at' => $data['published_at'] ?? null,
             'is_featured' => $data['is_featured'] ?? false,
         ]);
+
+        // Handle featured image upload
+        if ($request->hasFile('featured_image')) {
+            $media = MediaService::storeFromUpload($request->file('featured_image'), $request->user()->id, 'uploads/'.date('Y/m'));
+            $item->update(['featured_image_id' => $media->id]);
+        }
 
         NewsTranslation::create([
             'news_id' => $item->id,
@@ -90,7 +98,7 @@ class NewsController extends Controller
 
     public function edit(News $news): Response
     {
-        $news->load('translation');
+        $news->load(['translation','featuredImage']);
 
         return Inertia::render('Admin/News/Edit', [
             'news' => [
@@ -103,6 +111,7 @@ class NewsController extends Controller
                 'visibility' => $news->visibility,
                 'published_at' => optional($news->published_at)?->format('Y-m-d\\TH:i'),
                 'is_featured' => (bool) $news->is_featured,
+                'featured_image_url' => optional($news->featuredImage)?->url(),
             ],
         ]);
     }
@@ -126,6 +135,7 @@ class NewsController extends Controller
             'is_featured' => 'boolean',
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
+            'featured_image' => 'nullable|image|max:5120',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -136,6 +146,12 @@ class NewsController extends Controller
             'published_at' => $data['published_at'] ?? null,
             'is_featured' => $data['is_featured'] ?? false,
         ]);
+
+        // Handle featured image upload
+        if ($request->hasFile('featured_image')) {
+            $media = MediaService::storeFromUpload($request->file('featured_image'), $request->user()->id, 'uploads/'.date('Y/m'));
+            $news->update(['featured_image_id' => $media->id]);
+        }
 
         if ($translation) {
             $translation->update([

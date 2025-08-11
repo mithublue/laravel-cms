@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
         Route::resource('pages', \App\Http\Controllers\Admin\PageController::class)->except(['show']);
         Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show']);
         Route::resource('news', \App\Http\Controllers\Admin\NewsController::class)->except(['show']);
+        Route::post('media/upload', [\App\Http\Controllers\Admin\MediaUploadController::class, 'store'])->name('media.upload');
     });
 
 require __DIR__.'/auth.php';

@@ -42,4 +42,9 @@ class News extends Model
     {
         return $this->hasOne(NewsTranslation::class, 'news_id')->where('locale', app()->getLocale());
     }
+
+    public function featuredImage()
+    {
+        return $this->belongsTo(Media::class, 'featured_image_id');
+    }
 }

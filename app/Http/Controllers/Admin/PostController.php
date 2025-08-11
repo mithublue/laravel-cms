@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\PostTranslation;
+use App\Models\Media;
+use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -66,6 +68,7 @@ class PostController extends Controller
             'allow_comments' => 'boolean',
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
+            'featured_image' => 'nullable|image|max:5120',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -78,6 +81,12 @@ class PostController extends Controller
             'is_pinned' => $data['is_pinned'] ?? false,
             'allow_comments' => $data['allow_comments'] ?? true,
         ]);
+
+        // Handle featured image upload
+        if ($request->hasFile('featured_image')) {
+            $media = MediaService::storeFromUpload($request->file('featured_image'), $request->user()->id, 'uploads/'.date('Y/m'));
+            $post->update(['featured_image_id' => $media->id]);
+        }
 
         PostTranslation::create([
             'post_id' => $post->id,
@@ -93,7 +102,7 @@ class PostController extends Controller
 
     public function edit(Post $post): Response
     {
-        $post->load('translation');
+        $post->load(['translation', 'featuredImage']);
 
         return Inertia::render('Admin/Posts/Edit', [
             'post' => [
@@ -107,6 +116,7 @@ class PostController extends Controller
                 'published_at' => optional($post->published_at)?->format('Y-m-d\\TH:i'),
                 'is_pinned' => (bool) $post->is_pinned,
                 'allow_comments' => (bool) $post->allow_comments,
+                'featured_image_url' => optional($post->featuredImage)?->url(),
             ],
         ]);
     }
@@ -131,6 +141,7 @@ class PostController extends Controller
             'allow_comments' => 'boolean',
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
+            'featured_image' => 'nullable|image|max:5120',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -142,6 +153,12 @@ class PostController extends Controller
             'is_pinned' => $data['is_pinned'] ?? false,
             'allow_comments' => $data['allow_comments'] ?? true,
         ]);
+
+        // Handle featured image upload
+        if ($request->hasFile('featured_image')) {
+            $media = MediaService::storeFromUpload($request->file('featured_image'), $request->user()->id, 'uploads/'.date('Y/m'));
+            $post->update(['featured_image_id' => $media->id]);
+        }
 
         if ($translation) {
             $translation->update([
