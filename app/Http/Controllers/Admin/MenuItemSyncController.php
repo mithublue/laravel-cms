@@ -54,12 +54,18 @@ class MenuItemSyncController extends Controller
             $item = MenuItem::where('menu_id', $menu->id)->where('id', $payload['id'])->first();
         }
 
+        // Ensure target is not null and is a valid value
+        $target = $payload['target'] ?? '_self';
+        if (!in_array($target, ['_self', '_blank'], true)) {
+            $target = '_self';
+        }
+
         $attributes = [
             'menu_id' => $menu->id,
             'parent_id' => $parentId,
             'title' => $payload['title'] ?? 'Untitled',
             'url' => $payload['url'] ?? null,
-            'target' => $payload['target'] ?? null,
+            'target' => $target,
             'order' => $order,
             'linkable_type' => $payload['linkable_type'] ?? null,
             'linkable_id' => $payload['linkable_id'] ?? null,

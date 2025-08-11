@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Menu;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class MenuController extends Controller
 {
@@ -50,29 +51,45 @@ class MenuController extends Controller
             return $this->mapItem($item);
         })->values();
 
-        // Sources: recent pages, posts, news, products (use safe fallbacks for columns)
-        $pages = \App\Models\Page::query()->latest()->limit(20)->get()
+        // Sources: list all pages, posts, news, products with translated titles
+        $pages = \App\Models\Page::query()
+            ->with(['translation', 'translations'])
+            ->latest()
+            ->get()
             ->map(function ($p) {
-                $title = $p->title ?? $p->name ?? ($p->slug ?? ('Page '.$p->id));
-                $url = $p->slug ? '/'.$p->slug : ('/pages/'.$p->id);
+                $t = $p->translation ?? $p->translations->first();
+                $title = $t->title ?? ('Page '.$p->id);
+                $url = '/pages/' . Str::slug($title);
                 return [ 'id' => $p->id, 'title' => $title, 'url' => $url ];
             });
-        $posts = \App\Models\Post::query()->latest()->limit(20)->get()
+        $posts = \App\Models\Post::query()
+            ->with(['translation', 'translations'])
+            ->latest()
+            ->get()
             ->map(function ($p) {
-                $title = $p->title ?? ($p->slug ?? ('Post '.$p->id));
-                $url = $p->slug ? '/posts/'.$p->slug : ('/posts/'.$p->id);
+                $t = $p->translation ?? $p->translations->first();
+                $title = $t->title ?? ('Post '.$p->id);
+                $url = '/posts/' . Str::slug($title);
                 return [ 'id' => $p->id, 'title' => $title, 'url' => $url ];
             });
-        $news = \App\Models\News::query()->latest()->limit(20)->get()
+        $news = \App\Models\News::query()
+            ->with(['translation', 'translations'])
+            ->latest()
+            ->get()
             ->map(function ($n) {
-                $title = $n->title ?? ($n->slug ?? ('News '.$n->id));
-                $url = $n->slug ? '/news/'.$n->slug : ('/news/'.$n->id);
+                $t = $n->translation ?? $n->translations->first();
+                $title = $t->title ?? ('News '.$n->id);
+                $url = '/news/' . Str::slug($title);
                 return [ 'id' => $n->id, 'title' => $title, 'url' => $url ];
             });
-        $products = \App\Models\Product::query()->latest()->limit(20)->get()
+        $products = \App\Models\Product::query()
+            ->with(['translation', 'translations'])
+            ->latest()
+            ->get()
             ->map(function ($p) {
-                $title = $p->name ?? ($p->slug ?? ('Product '.$p->id));
-                $url = $p->slug ? '/products/'.$p->slug : ('/products/'.$p->id);
+                $t = $p->translation ?? $p->translations->first();
+                $title = $t->name ?? ('Product '.$p->id);
+                $url = '/products/' . Str::slug($title);
                 return [ 'id' => $p->id, 'title' => $title, 'url' => $url ];
             });
 
