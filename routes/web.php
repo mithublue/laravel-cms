@@ -24,4 +24,14 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Admin routes
+Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
+    ->prefix('admin')
+    ->as('admin.')
+    ->group(function () {
+        Route::resource('pages', \App\Http\Controllers\Admin\PageController::class)->except(['show']);
+        Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show']);
+        Route::resource('news', \App\Http\Controllers\Admin\NewsController::class)->except(['show']);
+    });
+
 require __DIR__.'/auth.php';

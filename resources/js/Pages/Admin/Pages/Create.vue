@@ -1,0 +1,81 @@
+<script setup>
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+
+const form = useForm({
+  title: '',
+  slug: '',
+  status: 'draft',
+  visibility: 'public',
+  published_at: '',
+});
+
+function submit() {
+  form.post(route('admin.pages.store'));
+}
+</script>
+
+<template>
+  <Head title="Create Page" />
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">Create Page</h2>
+        <Link :href="route('admin.pages.index')" class="text-sm text-gray-600 hover:text-gray-900">Back to list</Link>
+      </div>
+    </template>
+
+    <div class="py-6">
+      <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
+        <div class="bg-white p-6 shadow sm:rounded-lg">
+          <form @submit.prevent="submit" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Title</label>
+              <input v-model="form.title" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+              <div v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Slug (optional)</label>
+              <input v-model="form.slug" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+              <div v-if="form.errors.slug" class="mt-1 text-sm text-red-600">{{ form.errors.slug }}</div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Status</label>
+                <select v-model="form.status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                  <option value="draft">Draft</option>
+                  <option value="scheduled">Scheduled</option>
+                  <option value="published">Published</option>
+                  <option value="archived">Archived</option>
+                </select>
+                <div v-if="form.errors.status" class="mt-1 text-sm text-red-600">{{ form.errors.status }}</div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Visibility</label>
+                <select v-model="form.visibility" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </select>
+                <div v-if="form.errors.visibility" class="mt-1 text-sm text-red-600">{{ form.errors.visibility }}</div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Publish at</label>
+                <input v-model="form.published_at" type="datetime-local" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                <div v-if="form.errors.published_at" class="mt-1 text-sm text-red-600">{{ form.errors.published_at }}</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button type="submit" :disabled="form.processing" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">Save</button>
+              <span v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </AuthenticatedLayout>
+</template>
