@@ -32,6 +32,9 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
         Route::resource('pages', \App\Http\Controllers\Admin\PageController::class)->except(['show']);
         Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show']);
         Route::resource('news', \App\Http\Controllers\Admin\NewsController::class)->except(['show']);
+        Route::resource('products', \App\Http\Controllers\Admin\ProductController::class)->except(['show']);
+        Route::resource('menus', \App\Http\Controllers\Admin\MenuController::class)->except(['show']);
+        Route::post('menus/{menu}/sync-items', [\App\Http\Controllers\Admin\MenuItemSyncController::class, 'store'])->name('menus.sync-items');
         Route::post('media/upload', [\App\Http\Controllers\Admin\MediaUploadController::class, 'store'])->name('media.upload');
     });
 

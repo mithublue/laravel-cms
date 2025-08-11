@@ -11,7 +11,7 @@ const sidebarCollapsed = ref(false);
     <div>
         <div class="min-h-screen bg-gray-100 flex">
             <!-- Sidebar -->
-            <aside :class="['bg-white border-r border-gray-200 transition-all duration-300 ease-in-out', sidebarCollapsed ? 'w-16' : 'w-64']">
+            <aside :class="['bg-white border-r border-gray-200 transition-all duration-300 ease-in-out overflow-hidden', sidebarCollapsed ? 'w-16' : 'w-64']">
                 <div class="h-16 flex items-center justify-between px-4 border-b border-gray-100">
                     <Link :href="route('dashboard')">
                         <ApplicationLogo class="block h-9 w-auto fill-current text-gray-800" />
@@ -23,16 +23,16 @@ const sidebarCollapsed = ref(false);
                 </div>
 
                 <nav class="p-4 space-y-1">
-                    <NavLink :href="route('dashboard')" :active="route().current('dashboard')">Dashboard</NavLink>
-                    <NavLink :href="route('admin.pages.index')" :active="route().current('admin.pages.*')">Pages</NavLink>
-                    <NavLink :href="route('admin.posts.index')" :active="route().current('admin.posts.*')">Posts</NavLink>
-                    <NavLink :href="route('admin.news.index')" :active="route().current('admin.news.*')">News</NavLink>
-                    <NavLink href="#">Products</NavLink>
-                    <NavLink href="#">Media</NavLink>
-                    <NavLink href="#">Menus</NavLink>
-                    <NavLink href="#">Users</NavLink>
-                    <Link :href="route('profile.edit')" class="block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100">Profile</Link>
-                    <Link :href="route('logout')" method="post" as="button" class="w-full text-left block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100">Log Out</Link>
+                    <NavLink :href="route('dashboard')" :active="route().current('dashboard')" :collapsed="sidebarCollapsed" label="Dashboard">Dashboard</NavLink>
+                    <NavLink :href="route('admin.pages.index')" :active="route().current('admin.pages.*')" :collapsed="sidebarCollapsed" label="Pages">Pages</NavLink>
+                    <NavLink :href="route('admin.posts.index')" :active="route().current('admin.posts.*')" :collapsed="sidebarCollapsed" label="Posts">Posts</NavLink>
+                    <NavLink :href="route('admin.news.index')" :active="route().current('admin.news.*')" :collapsed="sidebarCollapsed" label="News">News</NavLink>
+                    <NavLink :href="route('admin.products.index')" :active="route().current('admin.products.*')" :collapsed="sidebarCollapsed" label="Products">Products</NavLink>
+                    <NavLink href="#" :collapsed="sidebarCollapsed" label="Media">Media</NavLink>
+                    <NavLink :href="route('admin.menus.index')" :active="route().current('admin.menus.*')" :collapsed="sidebarCollapsed" label="Menus">Menus</NavLink>
+                    <NavLink href="#" :collapsed="sidebarCollapsed" label="Users">Users</NavLink>
+                    <Link :href="route('profile.edit')" class="block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100" :title="sidebarCollapsed ? 'Profile' : undefined">Profile</Link>
+                    <Link :href="route('logout')" method="post" as="button" class="w-full text-left block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100" :title="sidebarCollapsed ? 'Log Out' : undefined">Log Out</Link>
                 </nav>
             </aside>
 
