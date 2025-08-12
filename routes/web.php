@@ -1,18 +1,17 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+// Public themed routes
+Route::get('/', [PublicController::class, 'home'])->name('home');
+Route::get('/pages/{slug}', [PublicController::class, 'page'])->name('pages.show');
+Route::get('/posts/{slug}', [PublicController::class, 'post'])->name('posts.show');
+Route::get('/news/{slug}', [PublicController::class, 'news'])->name('news.show');
+Route::get('/products/{slug}', [PublicController::class, 'product'])->name('products.show');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
@@ -36,6 +35,10 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
         Route::resource('menus', \App\Http\Controllers\Admin\MenuController::class)->except(['show']);
         Route::post('menus/{menu}/sync-items', [\App\Http\Controllers\Admin\MenuItemSyncController::class, 'store'])->name('menus.sync-items');
         Route::post('media/upload', [\App\Http\Controllers\Admin\MediaUploadController::class, 'store'])->name('media.upload');
+
+        // Themes management
+        Route::get('themes', [\App\Http\Controllers\Admin\ThemeController::class, 'index'])->name('themes.index');
+        Route::post('themes/activate', [\App\Http\Controllers\Admin\ThemeController::class, 'activate'])->name('themes.activate');
     });
 
 require __DIR__.'/auth.php';

@@ -30,6 +30,7 @@ const sidebarCollapsed = ref(false);
                     <NavLink :href="route('admin.products.index')" :active="route().current('admin.products.*')" :collapsed="sidebarCollapsed" label="Products">Products</NavLink>
                     <NavLink href="#" :collapsed="sidebarCollapsed" label="Media">Media</NavLink>
                     <NavLink :href="route('admin.menus.index')" :active="route().current('admin.menus.*')" :collapsed="sidebarCollapsed" label="Menus">Menus</NavLink>
+                    <NavLink :href="route('admin.themes.index')" :active="route().current('admin.themes.*')" :collapsed="sidebarCollapsed" label="Themes">Themes</NavLink>
                     <NavLink href="#" :collapsed="sidebarCollapsed" label="Users">Users</NavLink>
                     <Link :href="route('profile.edit')" class="block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100" :title="sidebarCollapsed ? 'Profile' : undefined">Profile</Link>
                     <Link :href="route('logout')" method="post" as="button" class="w-full text-left block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100" :title="sidebarCollapsed ? 'Log Out' : undefined">Log Out</Link>
