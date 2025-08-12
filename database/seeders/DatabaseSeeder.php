@@ -51,6 +51,7 @@ class DatabaseSeeder extends Seeder
         // Seed demo content
         $this->call([
             DemoContentSeeder::class,
+            MenuSeeder::class,
         ]);
     }
 }

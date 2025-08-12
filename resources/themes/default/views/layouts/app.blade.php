@@ -10,8 +10,9 @@
     <header class="bg-white border-b">
         <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
             <a href="/" class="text-xl font-semibold">My CMS</a>
-            <nav class="space-x-4 text-sm">
-                <a href="/" class="hover:underline">Home</a>
+            <nav class="text-sm">
+                @php($menu = \App\Support\Cms::menu('primary'))
+                @include('theme::partials.nav', ['items' => $menu])
             </nav>
         </div>
     </header>

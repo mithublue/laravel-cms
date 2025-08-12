@@ -12,7 +12,7 @@ class PublicController extends Controller
 {
     public function home()
     {
-        return view('theme::home');
+        return \App\Support\TemplateResolver::renderHome();
     }
 
     public function page(string $slug)
@@ -22,7 +22,7 @@ class PublicController extends Controller
             return $t && Str::slug($t->title) === $slug;
         });
         abort_unless($page, 404);
-        return view('theme::page', compact('page'));
+        return \App\Support\TemplateResolver::renderPage($page, compact('page'));
     }
 
     public function post(string $slug)
@@ -32,7 +32,7 @@ class PublicController extends Controller
             return $t && Str::slug($t->title) === $slug;
         });
         abort_unless($post, 404);
-        return view('theme::post', compact('post'));
+        return \App\Support\TemplateResolver::renderSingle('post', $post, compact('post'));
     }
 
     public function news(string $slug)
@@ -42,7 +42,7 @@ class PublicController extends Controller
             return $t && Str::slug($t->title) === $slug;
         });
         abort_unless($news, 404);
-        return view('theme::news', compact('news'));
+        return \App\Support\TemplateResolver::renderSingle('news', $news, compact('news'));
     }
 
     public function product(string $slug)
@@ -52,6 +52,6 @@ class PublicController extends Controller
             return $t && Str::slug($t->name) === $slug;
         });
         abort_unless($product, 404);
-        return view('theme::product', compact('product'));
+        return \App\Support\TemplateResolver::renderSingle('product', $product, compact('product'));
     }
 }

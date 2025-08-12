@@ -25,5 +25,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->renderable(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, \Illuminate\Http\Request $request) {
+            // Only handle public, non-JSON requests and skip admin paths
+            if ($request->expectsJson() || $request->is('admin') || $request->is('admin/*')) {
+                return null; // let default handler proceed
+            }
+            try {
+                return \App\Support\TemplateResolver::render404();
+            } catch (\Throwable $t) {
+                return null; // fallback to default 404 if theme rendering fails
+            }
+        });
     })->create();
