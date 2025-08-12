@@ -70,14 +70,20 @@ class TemplateResolver
             'theme::404',
             'theme::index',
         ];
-        return self::firstExisting($candidates, $data);
+        foreach ($candidates as $view) {
+            if (\Illuminate\Support\Facades\View::exists($view)) {
+                return response()->view($view, $data, 404);
+            }
+        }
+        // As a last resort, fallback to a plain 404 response
+        return response('Not Found', 404);
     }
 
     protected static function firstExisting(array $candidates, array $data)
     {
         foreach ($candidates as $view) {
             if (View::exists($view)) {
-                return view($view, $data);
+                return response()->view($view, $data, 200);
             }
         }
         // As a last resort, use a plain Laravel default
