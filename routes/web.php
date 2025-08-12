@@ -28,6 +28,8 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
     ->prefix('admin')
     ->as('admin.')
     ->group(function () {
+        // Register bulk DELETE first to avoid conflict with resource DELETE {id}
+        Route::delete('pages/bulk-force-delete', [\App\Http\Controllers\Admin\PageController::class, 'bulkForceDelete'])->name('pages.bulk-force-delete');
         Route::resource('pages', \App\Http\Controllers\Admin\PageController::class)->except(['show']);
         Route::get('pages/trash', [\App\Http\Controllers\Admin\PageController::class, 'trash'])->name('pages.trash');
         Route::post('pages/{id}/restore', [\App\Http\Controllers\Admin\PageController::class, 'restore'])->name('pages.restore');
@@ -35,7 +37,8 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
         // Pages bulk actions
         Route::post('pages/bulk-destroy', [\App\Http\Controllers\Admin\PageController::class, 'bulkDestroy'])->name('pages.bulk-destroy');
         Route::post('pages/bulk-restore', [\App\Http\Controllers\Admin\PageController::class, 'bulkRestore'])->name('pages.bulk-restore');
-        Route::delete('pages/bulk-force-delete', [\App\Http\Controllers\Admin\PageController::class, 'bulkForceDelete'])->name('pages.bulk-force-delete');
+        // Register bulk DELETE first to avoid conflict with resource DELETE {id}
+        Route::delete('posts/bulk-force-delete', [\App\Http\Controllers\Admin\PostController::class, 'bulkForceDelete'])->name('posts.bulk-force-delete');
         Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show']);
         Route::get('posts/trash', [\App\Http\Controllers\Admin\PostController::class, 'trash'])->name('posts.trash');
         Route::post('posts/{id}/restore', [\App\Http\Controllers\Admin\PostController::class, 'restore'])->name('posts.restore');
@@ -43,7 +46,8 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
         // Posts bulk actions
         Route::post('posts/bulk-destroy', [\App\Http\Controllers\Admin\PostController::class, 'bulkDestroy'])->name('posts.bulk-destroy');
         Route::post('posts/bulk-restore', [\App\Http\Controllers\Admin\PostController::class, 'bulkRestore'])->name('posts.bulk-restore');
-        Route::delete('posts/bulk-force-delete', [\App\Http\Controllers\Admin\PostController::class, 'bulkForceDelete'])->name('posts.bulk-force-delete');
+        // Register bulk DELETE first to avoid conflict with resource DELETE {id}
+        Route::delete('news/bulk-force-delete', [\App\Http\Controllers\Admin\NewsController::class, 'bulkForceDelete'])->name('news.bulk-force-delete');
         Route::resource('news', \App\Http\Controllers\Admin\NewsController::class)->except(['show']);
         Route::get('news/trash', [\App\Http\Controllers\Admin\NewsController::class, 'trash'])->name('news.trash');
         Route::post('news/{id}/restore', [\App\Http\Controllers\Admin\NewsController::class, 'restore'])->name('news.restore');
@@ -51,7 +55,8 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
         // News bulk actions
         Route::post('news/bulk-destroy', [\App\Http\Controllers\Admin\NewsController::class, 'bulkDestroy'])->name('news.bulk-destroy');
         Route::post('news/bulk-restore', [\App\Http\Controllers\Admin\NewsController::class, 'bulkRestore'])->name('news.bulk-restore');
-        Route::delete('news/bulk-force-delete', [\App\Http\Controllers\Admin\NewsController::class, 'bulkForceDelete'])->name('news.bulk-force-delete');
+        // Register bulk DELETE first to avoid conflict with resource DELETE {id}
+        Route::delete('products/bulk-force-delete', [\App\Http\Controllers\Admin\ProductController::class, 'bulkForceDelete'])->name('products.bulk-force-delete');
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class)->except(['show']);
         Route::get('products/trash', [\App\Http\Controllers\Admin\ProductController::class, 'trash'])->name('products.trash');
         Route::post('products/{id}/restore', [\App\Http\Controllers\Admin\ProductController::class, 'restore'])->name('products.restore');
@@ -59,7 +64,6 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
         // Products bulk actions
         Route::post('products/bulk-destroy', [\App\Http\Controllers\Admin\ProductController::class, 'bulkDestroy'])->name('products.bulk-destroy');
         Route::post('products/bulk-restore', [\App\Http\Controllers\Admin\ProductController::class, 'bulkRestore'])->name('products.bulk-restore');
-        Route::delete('products/bulk-force-delete', [\App\Http\Controllers\Admin\ProductController::class, 'bulkForceDelete'])->name('products.bulk-force-delete');
         Route::resource('menus', \App\Http\Controllers\Admin\MenuController::class)->except(['show']);
         Route::post('menus/{menu}/sync-items', [\App\Http\Controllers\Admin\MenuItemSyncController::class, 'store'])->name('menus.sync-items');
         Route::post('media/upload', [\App\Http\Controllers\Admin\MediaUploadController::class, 'store'])->name('media.upload');
