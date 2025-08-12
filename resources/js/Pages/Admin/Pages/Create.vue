@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import RichTextEditor from '@/Components/RichTextEditor.vue';
 
 const form = useForm({
   title: '',
@@ -8,6 +9,8 @@ const form = useForm({
   status: 'draft',
   visibility: 'public',
   published_at: '',
+  excerpt: '',
+  content: '',
 });
 
 function submit() {
@@ -26,40 +29,62 @@ function submit() {
     </template>
 
     <div class="py-6">
-      <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
-        <div class="bg-white p-6 shadow sm:rounded-lg">
-          <form @submit.prevent="submit" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Title</label>
-              <input v-model="form.title" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-              <div v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</div>
-            </div>
+      <div class="mx-auto max-w-6xl sm:px-6 lg:px-8">
+        <form @submit.prevent="submit" class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <!-- Main -->
+          <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white p-6 shadow sm:rounded-lg">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Title</label>
+                  <input v-model="form.title" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <div v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</div>
+                </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Slug (optional)</label>
-              <input v-model="form.slug" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-              <div v-if="form.errors.slug" class="mt-1 text-sm text-red-600">{{ form.errors.slug }}</div>
-            </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Excerpt</label>
+                  <textarea v-model="form.excerpt" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <div v-if="form.errors.excerpt" class="mt-1 text-sm text-red-600">{{ form.errors.excerpt }}</div>
+                </div>
 
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Content</label>
+                  <RichTextEditor v-model="form.content" />
+                  <div v-if="form.errors.content" class="mt-1 text-sm text-red-600">{{ form.errors.content }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar -->
+          <div class="space-y-6">
+            <div class="bg-white p-6 shadow sm:rounded-lg space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700">Status</label>
-                <select v-model="form.status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                  <option value="draft">Draft</option>
-                  <option value="scheduled">Scheduled</option>
-                  <option value="published">Published</option>
-                  <option value="archived">Archived</option>
-                </select>
-                <div v-if="form.errors.status" class="mt-1 text-sm text-red-600">{{ form.errors.status }}</div>
+                <label class="block text-sm font-medium text-gray-700">Slug (optional)</label>
+                <input v-model="form.slug" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                <div v-if="form.errors.slug" class="mt-1 text-sm text-red-600">{{ form.errors.slug }}</div>
               </div>
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Visibility</label>
-                <select v-model="form.visibility" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                  <option value="public">Public</option>
-                  <option value="private">Private</option>
-                </select>
-                <div v-if="form.errors.visibility" class="mt-1 text-sm text-red-600">{{ form.errors.visibility }}</div>
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Status</label>
+                  <select v-model="form.status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="draft">Draft</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                  <div v-if="form.errors.status" class="mt-1 text-sm text-red-600">{{ form.errors.status }}</div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Visibility</label>
+                  <select v-model="form.visibility" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                  </select>
+                  <div v-if="form.errors.visibility" class="mt-1 text-sm text-red-600">{{ form.errors.visibility }}</div>
+                </div>
               </div>
 
               <div>
@@ -67,14 +92,14 @@ function submit() {
                 <input v-model="form.published_at" type="datetime-local" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 <div v-if="form.errors.published_at" class="mt-1 text-sm text-red-600">{{ form.errors.published_at }}</div>
               </div>
-            </div>
 
-            <div class="flex items-center gap-3">
-              <button type="submit" :disabled="form.processing" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">Save</button>
-              <span v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</span>
+              <div class="pt-2">
+                <button type="submit" :disabled="form.processing" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">Save</button>
+                <span v-if="form.recentlySuccessful" class="ml-3 text-sm text-gray-600">Saved.</span>
+              </div>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   </AuthenticatedLayout>

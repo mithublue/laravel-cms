@@ -239,4 +239,44 @@ class PostController extends Controller
         $post->forceDelete();
         return redirect()->route('admin.posts.trash')->with('success', 'Post permanently deleted.');
     }
+
+    /** Bulk soft delete (move to trash) */
+    public function bulkDestroy(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer','exists:posts,id'],
+        ])['ids'];
+
+        Post::whereIn('id', $ids)->delete();
+        return back()->with('success', 'Selected posts moved to trash.');
+    }
+
+    /** Bulk restore */
+    public function bulkRestore(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer'],
+        ])['ids'];
+
+        Post::onlyTrashed()->whereIn('id', $ids)->restore();
+        return back()->with('success', 'Selected posts restored.');
+    }
+
+    /** Bulk permanent delete */
+    public function bulkForceDelete(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer'],
+        ])['ids'];
+
+        $posts = Post::onlyTrashed()->with('translations')->whereIn('id', $ids)->get();
+        foreach ($posts as $p) {
+            $p->translations()->delete();
+            $p->forceDelete();
+        }
+        return back()->with('success', 'Selected posts permanently deleted.');
+    }
 }

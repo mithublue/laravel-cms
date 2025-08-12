@@ -273,4 +273,44 @@ class ProductController extends Controller
         $product->forceDelete();
         return redirect()->route('admin.products.trash')->with('success', 'Product permanently deleted.');
     }
+
+    /** Bulk soft delete (move to trash) */
+    public function bulkDestroy(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer','exists:products,id'],
+        ])['ids'];
+
+        Product::whereIn('id', $ids)->delete();
+        return back()->with('success', 'Selected products moved to trash.');
+    }
+
+    /** Bulk restore */
+    public function bulkRestore(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer'],
+        ])['ids'];
+
+        Product::onlyTrashed()->whereIn('id', $ids)->restore();
+        return back()->with('success', 'Selected products restored.');
+    }
+
+    /** Bulk permanent delete */
+    public function bulkForceDelete(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer'],
+        ])['ids'];
+
+        $products = Product::onlyTrashed()->with('translations')->whereIn('id', $ids)->get();
+        foreach ($products as $p) {
+            $p->translations()->delete();
+            $p->forceDelete();
+        }
+        return back()->with('success', 'Selected products permanently deleted.');
+    }
 }

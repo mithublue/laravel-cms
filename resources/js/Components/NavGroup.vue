@@ -39,7 +39,12 @@ watch(
             @click="open = !open"
             :title="collapsed ? label : undefined"
         >
-            <span :class="[collapsed ? 'opacity-0 w-0 inline-block overflow-hidden' : 'inline-block']">{{ label }}</span>
+            <span class="flex items-center gap-3">
+                <span class="shrink-0 inline-flex items-center justify-center">
+                    <slot name="icon" />
+                </span>
+                <span :class="[collapsed ? 'opacity-0 w-0 inline-block overflow-hidden' : 'inline-block']">{{ label }}</span>
+            </span>
             <span v-if="!collapsed" class="text-xs text-gray-500">{{ open ? '▾' : '▸' }}</span>
         </button>
 
@@ -47,4 +52,4 @@ watch(
             <slot />
         </div>
     </div>
-</template>
+    </template>

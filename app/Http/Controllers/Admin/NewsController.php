@@ -232,4 +232,44 @@ class NewsController extends Controller
         $news->forceDelete();
         return redirect()->route('admin.news.trash')->with('success', 'News permanently deleted.');
     }
+
+    /** Bulk soft delete (move to trash) */
+    public function bulkDestroy(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer','exists:news,id'],
+        ])['ids'];
+
+        News::whereIn('id', $ids)->delete();
+        return back()->with('success', 'Selected news moved to trash.');
+    }
+
+    /** Bulk restore */
+    public function bulkRestore(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer'],
+        ])['ids'];
+
+        News::onlyTrashed()->whereIn('id', $ids)->restore();
+        return back()->with('success', 'Selected news restored.');
+    }
+
+    /** Bulk permanent delete */
+    public function bulkForceDelete(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer'],
+        ])['ids'];
+
+        $items = News::onlyTrashed()->with('translations')->whereIn('id', $ids)->get();
+        foreach ($items as $n) {
+            $n->translations()->delete();
+            $n->forceDelete();
+        }
+        return back()->with('success', 'Selected news permanently deleted.');
+    }
 }

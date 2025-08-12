@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 
 const props = defineProps({
   news: Object,
@@ -9,6 +9,22 @@ const props = defineProps({
 });
 
 const search = ref(props.filters?.search || '');
+const selected = ref([]);
+const allSelected = computed(() => props.news?.data?.length && selected.value.length === props.news.data.length);
+
+function toggleSelectAll(e) {
+  if (e.target.checked) {
+    selected.value = props.news.data.map((p) => p.id);
+  } else {
+    selected.value = [];
+  }
+}
+
+function bulkTrash() {
+  if (!selected.value.length) return;
+  if (!confirm(`Move ${selected.value.length} selected news item(s) to Trash?`)) return;
+  router.post(route('admin.news.bulk-destroy'), { ids: selected.value }, { preserveScroll: true, preserveState: true });
+}
 
 watch(search, (value) => {
   router.get(route('admin.news.index'), { search: value }, { preserveState: true, replace: true });
@@ -32,10 +48,21 @@ watch(search, (value) => {
             <input v-model="search" type="text" placeholder="Search news..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
           </div>
 
+          <div class="mb-3 flex items-center gap-2">
+            <button @click="bulkTrash" :disabled="!selected.length" class="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm"
+              :class="selected.length ? 'bg-red-600 text-white hover:bg-red-500' : 'bg-gray-200 text-gray-500 cursor-not-allowed'">
+              Move to Trash
+            </button>
+            <span class="text-sm text-gray-500" v-if="selected.length">{{ selected.length }} selected</span>
+          </div>
+
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
+                  <th class="w-10 px-3 py-2">
+                    <input type="checkbox" :checked="allSelected" @change="toggleSelectAll" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" aria-label="Select all" />
+                  </th>
                   <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">ID</th>
                   <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Title</th>
                   <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Slug</th>
@@ -48,6 +75,9 @@ watch(search, (value) => {
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white">
                 <tr v-for="item in news.data" :key="item.id">
+                  <td class="w-10 px-3 py-2">
+                    <input type="checkbox" :value="item.id" v-model="selected" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" aria-label="Select row" />
+                  </td>
                   <td class="px-3 py-2 text-sm text-gray-700">{{ item.id }}</td>
                   <td class="px-3 py-2 text-sm text-gray-900">{{ item.title || '(no title)' }}</td>
                   <td class="px-3 py-2 text-sm text-gray-700">{{ item.slug }}</td>

@@ -58,7 +58,8 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['nullable', 'string', Rule::exists('roles', 'name')],
+            'roles' => ['array'],
+            'roles.*' => ['string', Rule::exists('roles', 'name')],
         ]);
 
         $user = User::create([
@@ -67,10 +68,55 @@ class UserController extends Controller
             'password' => $data['password'],
         ]);
 
-        if (!empty($data['role'])) {
-            $user->assignRole($data['role']);
-        }
+        $user->syncRoles($data['roles'] ?? []);
 
         return redirect()->route('admin.users.index')->with('success', 'User created.');
+    }
+
+    public function edit(User $user): Response
+    {
+        $roles = Role::query()->orderBy('name')->pluck('name');
+        return Inertia::render('Admin/Users/Edit', [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->roles->pluck('name')->values(),
+            ],
+            'roles' => $roles,
+        ]);
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'roles' => ['array'],
+            'roles.*' => ['string', Rule::exists('roles', 'name')],
+        ]);
+
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        if (!empty($data['password'])) {
+            $user->password = $data['password'];
+        }
+        $user->save();
+
+        $user->syncRoles($data['roles'] ?? []);
+
+        return redirect()->route('admin.users.index')->with('success', 'User updated.');
+    }
+
+    public function destroy(User $user)
+    {
+        // Prevent deleting yourself optionally
+        if (auth()->id() === $user->id) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
+
+        $user->delete();
+        return redirect()->route('admin.users.index')->with('success', 'User deleted.');
     }
 }

@@ -60,6 +60,8 @@ class PageController extends Controller
             'status' => 'required|in:draft,scheduled,published,archived',
             'visibility' => 'required|in:public,private',
             'published_at' => 'nullable|date',
+            'excerpt' => 'nullable|string',
+            'content' => 'nullable|string',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -76,6 +78,8 @@ class PageController extends Controller
             'locale' => app()->getLocale(),
             'title' => $data['title'],
             'slug' => $slug,
+            'excerpt' => $data['excerpt'] ?? null,
+            'content' => $data['content'] ?? null,
         ]);
 
         return redirect()->route('admin.pages.index')->with('success', 'Page created.');
@@ -90,6 +94,8 @@ class PageController extends Controller
                 'id' => $page->id,
                 'title' => optional($page->translation)->title,
                 'slug' => optional($page->translation)->slug,
+                'excerpt' => optional($page->translation)->excerpt,
+                'content' => optional($page->translation)->content,
                 'status' => $page->status,
                 'visibility' => $page->visibility,
                 'published_at' => optional($page->published_at)?->format('Y-m-d\\TH:i'),
@@ -108,6 +114,8 @@ class PageController extends Controller
             'status' => 'required|in:draft,scheduled,published,archived',
             'visibility' => 'required|in:public,private',
             'published_at' => 'nullable|date',
+            'excerpt' => 'nullable|string',
+            'content' => 'nullable|string',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -122,6 +130,8 @@ class PageController extends Controller
             $translation->update([
                 'title' => $data['title'],
                 'slug' => $slug,
+                'excerpt' => $data['excerpt'] ?? null,
+                'content' => $data['content'] ?? null,
             ]);
         } else {
             PageTranslation::create([
@@ -129,6 +139,8 @@ class PageController extends Controller
                 'locale' => $locale,
                 'title' => $data['title'],
                 'slug' => $slug,
+                'excerpt' => $data['excerpt'] ?? null,
+                'content' => $data['content'] ?? null,
             ]);
         }
 
@@ -193,5 +205,45 @@ class PageController extends Controller
         $page->translations()->delete();
         $page->forceDelete();
         return redirect()->route('admin.pages.trash')->with('success', 'Page permanently deleted.');
+    }
+
+    /** Bulk soft delete (move to trash) */
+    public function bulkDestroy(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer','exists:pages,id'],
+        ])['ids'];
+
+        Page::whereIn('id', $ids)->delete();
+        return back()->with('success', 'Selected pages moved to trash.');
+    }
+
+    /** Bulk restore */
+    public function bulkRestore(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer'],
+        ])['ids'];
+
+        Page::onlyTrashed()->whereIn('id', $ids)->restore();
+        return back()->with('success', 'Selected pages restored.');
+    }
+
+    /** Bulk permanent delete */
+    public function bulkForceDelete(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => ['required','array'],
+            'ids.*' => ['integer'],
+        ])['ids'];
+
+        $pages = Page::onlyTrashed()->with('translations')->whereIn('id', $ids)->get();
+        foreach ($pages as $p) {
+            $p->translations()->delete();
+            $p->forceDelete();
+        }
+        return back()->with('success', 'Selected pages permanently deleted.');
     }
 }
