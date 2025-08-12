@@ -187,4 +187,56 @@ class PostController extends Controller
 
         return redirect()->route('admin.posts.index')->with('success', 'Post deleted.');
     }
+
+    /**
+     * List trashed posts
+     */
+    public function trash(Request $request): Response
+    {
+        $query = Post::onlyTrashed()->with(['translation']);
+
+        if ($search = $request->string('search')->toString()) {
+            $query->whereHas('translations', function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('slug', 'like', "%{$search}%");
+            });
+        }
+
+        $posts = $query
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function (Post $post) {
+                return [
+                    'id' => $post->id,
+                    'title' => optional($post->translation)->title,
+                    'slug' => optional($post->translation)->slug,
+                    'deleted_at' => optional($post->deleted_at)?->toDateTimeString(),
+                ];
+            });
+
+        return Inertia::render('Admin/Posts/Trash', [
+            'posts' => $posts,
+            'filters' => [
+                'search' => $request->get('search'),
+            ],
+        ]);
+    }
+
+    /** Restore a trashed post */
+    public function restore($id)
+    {
+        $post = Post::onlyTrashed()->findOrFail($id);
+        $post->restore();
+        return redirect()->route('admin.posts.trash')->with('success', 'Post restored.');
+    }
+
+    /** Permanently delete a post */
+    public function forceDelete($id)
+    {
+        $post = Post::onlyTrashed()->with('translations')->findOrFail($id);
+        $post->translations()->delete();
+        $post->forceDelete();
+        return redirect()->route('admin.posts.trash')->with('success', 'Post permanently deleted.');
+    }
 }

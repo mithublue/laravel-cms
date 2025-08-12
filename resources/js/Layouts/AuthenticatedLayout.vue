@@ -1,6 +1,7 @@
 <script setup>
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import NavLink from '@/Components/NavLink.vue';
+import NavGroup from '@/Components/NavGroup.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -24,14 +25,44 @@ const sidebarCollapsed = ref(false);
 
                 <nav class="p-4 space-y-1">
                     <NavLink :href="route('dashboard')" :active="route().current('dashboard')" :collapsed="sidebarCollapsed" label="Dashboard">Dashboard</NavLink>
-                    <NavLink :href="route('admin.pages.index')" :active="route().current('admin.pages.*')" :collapsed="sidebarCollapsed" label="Pages">Pages</NavLink>
-                    <NavLink :href="route('admin.posts.index')" :active="route().current('admin.posts.*')" :collapsed="sidebarCollapsed" label="Posts">Posts</NavLink>
-                    <NavLink :href="route('admin.news.index')" :active="route().current('admin.news.*')" :collapsed="sidebarCollapsed" label="News">News</NavLink>
-                    <NavLink :href="route('admin.products.index')" :active="route().current('admin.products.*')" :collapsed="sidebarCollapsed" label="Products">Products</NavLink>
+                    <a href="/" target="_blank" class="block px-3 py-2 rounded-md text-sm text-indigo-700 hover:bg-indigo-50" :title="sidebarCollapsed ? 'View Site' : undefined">View Site ↗</a>
+
+                    <!-- Pages -->
+                    <NavGroup label="Pages" :collapsed="sidebarCollapsed" :active="route().current('admin.pages.*')">
+                        <NavLink :href="route('admin.pages.index')" :active="route().current('admin.pages.index')" :collapsed="false" label="All Pages">All Pages</NavLink>
+                        <NavLink :href="route('admin.pages.create')" :active="route().current('admin.pages.create')" :collapsed="false" label="Add New Page">Add New Page</NavLink>
+                        <NavLink :href="route('admin.pages.trash')" :active="route().current('admin.pages.trash')" :collapsed="false" label="Trash">Trash</NavLink>
+                    </NavGroup>
+
+                    <!-- Posts -->
+                    <NavGroup label="Posts" :collapsed="sidebarCollapsed" :active="route().current('admin.posts.*')">
+                        <NavLink :href="route('admin.posts.index')" :active="route().current('admin.posts.index')" :collapsed="false" label="All Posts">All Posts</NavLink>
+                        <NavLink :href="route('admin.posts.create')" :active="route().current('admin.posts.create')" :collapsed="false" label="Add New Post">Add New Post</NavLink>
+                        <NavLink :href="route('admin.posts.trash')" :active="route().current('admin.posts.trash')" :collapsed="false" label="Trash">Trash</NavLink>
+                    </NavGroup>
+
+                    <!-- News -->
+                    <NavGroup label="News" :collapsed="sidebarCollapsed" :active="route().current('admin.news.*')">
+                        <NavLink :href="route('admin.news.index')" :active="route().current('admin.news.index')" :collapsed="false" label="All News">All News</NavLink>
+                        <NavLink :href="route('admin.news.create')" :active="route().current('admin.news.create')" :collapsed="false" label="Add New News">Add New News</NavLink>
+                        <NavLink :href="route('admin.news.trash')" :active="route().current('admin.news.trash')" :collapsed="false" label="Trash">Trash</NavLink>
+                    </NavGroup>
+
+                    <!-- Products -->
+                    <NavGroup label="Products" :collapsed="sidebarCollapsed" :active="route().current('admin.products.*')">
+                        <NavLink :href="route('admin.products.index')" :active="route().current('admin.products.index')" :collapsed="false" label="All Products">All Products</NavLink>
+                        <NavLink :href="route('admin.products.create')" :active="route().current('admin.products.create')" :collapsed="false" label="Add New Product">Add New Product</NavLink>
+                        <NavLink :href="route('admin.products.trash')" :active="route().current('admin.products.trash')" :collapsed="false" label="Trash">Trash</NavLink>
+                    </NavGroup>
+
                     <NavLink href="#" :collapsed="sidebarCollapsed" label="Media">Media</NavLink>
                     <NavLink :href="route('admin.menus.index')" :active="route().current('admin.menus.*')" :collapsed="sidebarCollapsed" label="Menus">Menus</NavLink>
                     <NavLink :href="route('admin.themes.index')" :active="route().current('admin.themes.*')" :collapsed="sidebarCollapsed" label="Themes">Themes</NavLink>
-                    <NavLink href="#" :collapsed="sidebarCollapsed" label="Users">Users</NavLink>
+                    <!-- Users -->
+                    <NavGroup label="Users" :collapsed="sidebarCollapsed" :active="route().current('admin.users.*')">
+                        <NavLink :href="route('admin.users.index')" :active="route().current('admin.users.index')" :collapsed="false" label="All Users">All Users</NavLink>
+                        <NavLink :href="route('admin.users.create')" :active="route().current('admin.users.create')" :collapsed="false" label="Add New User">Add New User</NavLink>
+                    </NavGroup>
                     <Link :href="route('profile.edit')" class="block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100" :title="sidebarCollapsed ? 'Profile' : undefined">Profile</Link>
                     <Link :href="route('logout')" method="post" as="button" class="w-full text-left block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100" :title="sidebarCollapsed ? 'Log Out' : undefined">Log Out</Link>
                 </nav>

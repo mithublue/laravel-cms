@@ -29,12 +29,27 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
     ->as('admin.')
     ->group(function () {
         Route::resource('pages', \App\Http\Controllers\Admin\PageController::class)->except(['show']);
+        Route::get('pages/trash', [\App\Http\Controllers\Admin\PageController::class, 'trash'])->name('pages.trash');
+        Route::post('pages/{id}/restore', [\App\Http\Controllers\Admin\PageController::class, 'restore'])->name('pages.restore');
+        Route::delete('pages/{id}/force-delete', [\App\Http\Controllers\Admin\PageController::class, 'forceDelete'])->name('pages.force-delete');
         Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show']);
+        Route::get('posts/trash', [\App\Http\Controllers\Admin\PostController::class, 'trash'])->name('posts.trash');
+        Route::post('posts/{id}/restore', [\App\Http\Controllers\Admin\PostController::class, 'restore'])->name('posts.restore');
+        Route::delete('posts/{id}/force-delete', [\App\Http\Controllers\Admin\PostController::class, 'forceDelete'])->name('posts.force-delete');
         Route::resource('news', \App\Http\Controllers\Admin\NewsController::class)->except(['show']);
+        Route::get('news/trash', [\App\Http\Controllers\Admin\NewsController::class, 'trash'])->name('news.trash');
+        Route::post('news/{id}/restore', [\App\Http\Controllers\Admin\NewsController::class, 'restore'])->name('news.restore');
+        Route::delete('news/{id}/force-delete', [\App\Http\Controllers\Admin\NewsController::class, 'forceDelete'])->name('news.force-delete');
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class)->except(['show']);
+        Route::get('products/trash', [\App\Http\Controllers\Admin\ProductController::class, 'trash'])->name('products.trash');
+        Route::post('products/{id}/restore', [\App\Http\Controllers\Admin\ProductController::class, 'restore'])->name('products.restore');
+        Route::delete('products/{id}/force-delete', [\App\Http\Controllers\Admin\ProductController::class, 'forceDelete'])->name('products.force-delete');
         Route::resource('menus', \App\Http\Controllers\Admin\MenuController::class)->except(['show']);
         Route::post('menus/{menu}/sync-items', [\App\Http\Controllers\Admin\MenuItemSyncController::class, 'store'])->name('menus.sync-items');
         Route::post('media/upload', [\App\Http\Controllers\Admin\MediaUploadController::class, 'store'])->name('media.upload');
+
+        // Users
+        Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['show']);
 
         // Themes management
         Route::get('themes', [\App\Http\Controllers\Admin\ThemeController::class, 'index'])->name('themes.index');

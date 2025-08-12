@@ -141,4 +141,57 @@ class PageController extends Controller
 
         return redirect()->route('admin.pages.index')->with('success', 'Page deleted.');
     }
+
+    /**
+     * List trashed pages
+     */
+    public function trash(Request $request): Response
+    {
+        $query = Page::onlyTrashed()->with(['translation']);
+
+        if ($search = $request->string('search')->toString()) {
+            $query->whereHas('translations', function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('slug', 'like', "%{$search}%");
+            });
+        }
+
+        $pages = $query
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function (Page $page) {
+                return [
+                    'id' => $page->id,
+                    'title' => optional($page->translation)->title,
+                    'slug' => optional($page->translation)->slug,
+                    'deleted_at' => optional($page->deleted_at)?->toDateTimeString(),
+                ];
+            });
+
+        return Inertia::render('Admin/Pages/Trash', [
+            'pages' => $pages,
+            'filters' => [
+                'search' => $request->get('search'),
+            ],
+        ]);
+    }
+
+    /** Restore a trashed page */
+    public function restore($id)
+    {
+        $page = Page::onlyTrashed()->findOrFail($id);
+        $page->restore();
+        return redirect()->route('admin.pages.trash')->with('success', 'Page restored.');
+    }
+
+    /** Permanently delete a page */
+    public function forceDelete($id)
+    {
+        $page = Page::onlyTrashed()->with('translations')->findOrFail($id);
+        // Ensure related translations are removed
+        $page->translations()->delete();
+        $page->forceDelete();
+        return redirect()->route('admin.pages.trash')->with('success', 'Page permanently deleted.');
+    }
 }

@@ -220,4 +220,57 @@ class ProductController extends Controller
         $product->delete();
         return redirect()->route('admin.products.index')->with('success', 'Product deleted.');
     }
+
+    /**
+     * List trashed products
+     */
+    public function trash(Request $request): Response
+    {
+        $query = Product::onlyTrashed()->with(['translation']);
+
+        if ($search = $request->string('search')->toString()) {
+            $query->whereHas('translations', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('slug', 'like', "%{$search}%");
+            })->orWhere('sku', 'like', "%{$search}%");
+        }
+
+        $products = $query
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function (Product $product) {
+                return [
+                    'id' => $product->id,
+                    'name' => optional($product->translation)->name,
+                    'slug' => optional($product->translation)->slug,
+                    'sku' => $product->sku,
+                    'deleted_at' => optional($product->deleted_at)?->toDateTimeString(),
+                ];
+            });
+
+        return Inertia::render('Admin/Products/Trash', [
+            'products' => $products,
+            'filters' => [
+                'search' => $request->get('search'),
+            ],
+        ]);
+    }
+
+    /** Restore a trashed product */
+    public function restore($id)
+    {
+        $product = Product::onlyTrashed()->findOrFail($id);
+        $product->restore();
+        return redirect()->route('admin.products.trash')->with('success', 'Product restored.');
+    }
+
+    /** Permanently delete a product */
+    public function forceDelete($id)
+    {
+        $product = Product::onlyTrashed()->with('translations')->findOrFail($id);
+        $product->translations()->delete();
+        $product->forceDelete();
+        return redirect()->route('admin.products.trash')->with('success', 'Product permanently deleted.');
+    }
 }

@@ -180,4 +180,56 @@ class NewsController extends Controller
 
         return redirect()->route('admin.news.index')->with('success', 'News deleted.');
     }
+
+    /**
+     * List trashed news
+     */
+    public function trash(Request $request): Response
+    {
+        $query = News::onlyTrashed()->with(['translation']);
+
+        if ($search = $request->string('search')->toString()) {
+            $query->whereHas('translations', function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('slug', 'like', "%{$search}%");
+            });
+        }
+
+        $news = $query
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function (News $item) {
+                return [
+                    'id' => $item->id,
+                    'title' => optional($item->translation)->title,
+                    'slug' => optional($item->translation)->slug,
+                    'deleted_at' => optional($item->deleted_at)?->toDateTimeString(),
+                ];
+            });
+
+        return Inertia::render('Admin/News/Trash', [
+            'news' => $news,
+            'filters' => [
+                'search' => $request->get('search'),
+            ],
+        ]);
+    }
+
+    /** Restore a trashed news item */
+    public function restore($id)
+    {
+        $news = News::onlyTrashed()->findOrFail($id);
+        $news->restore();
+        return redirect()->route('admin.news.trash')->with('success', 'News restored.');
+    }
+
+    /** Permanently delete a news item */
+    public function forceDelete($id)
+    {
+        $news = News::onlyTrashed()->with('translations')->findOrFail($id);
+        $news->translations()->delete();
+        $news->forceDelete();
+        return redirect()->route('admin.news.trash')->with('success', 'News permanently deleted.');
+    }
 }
