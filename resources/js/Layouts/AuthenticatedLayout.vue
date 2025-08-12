@@ -46,7 +46,7 @@ onMounted(() => {
                     </a>
 
                     <!-- Pages -->
-                    <NavGroup label="Pages" :collapsed="sidebarCollapsed" :active="route().current('admin.pages.*')">
+                    <NavGroup v-if="$page.props.modules?.pages" label="Pages" :collapsed="sidebarCollapsed" :active="route().current('admin.pages.*')">
                         <template #icon>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h7l5 5v9a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
                         </template>
@@ -56,7 +56,7 @@ onMounted(() => {
                     </NavGroup>
 
                     <!-- Posts -->
-                    <NavGroup label="Posts" :collapsed="sidebarCollapsed" :active="route().current('admin.posts.*')">
+                    <NavGroup v-if="$page.props.modules?.posts" label="Posts" :collapsed="sidebarCollapsed" :active="route().current('admin.posts.*')">
                         <template #icon>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h10M7 11h10M7 15h7M5 5a2 2 0 012-2h10a2 2 0 012 2v14l-4-3H7a2 2 0 01-2-2V5z"/></svg>
                         </template>
@@ -66,7 +66,7 @@ onMounted(() => {
                     </NavGroup>
 
                     <!-- News -->
-                    <NavGroup label="News" :collapsed="sidebarCollapsed" :active="route().current('admin.news.*')">
+                    <NavGroup v-if="$page.props.modules?.news" label="News" :collapsed="sidebarCollapsed" :active="route().current('admin.news.*')">
                         <template #icon>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 10h16M4 14h10M4 18h10"/></svg>
                         </template>
@@ -76,7 +76,7 @@ onMounted(() => {
                     </NavGroup>
 
                     <!-- Products -->
-                    <NavGroup label="Products" :collapsed="sidebarCollapsed" :active="route().current('admin.products.*')">
+                    <NavGroup v-if="$page.props.modules?.products" label="Products" :collapsed="sidebarCollapsed" :active="route().current('admin.products.*')">
                         <template #icon>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7H4l1.5 12A2 2 0 007.5 21h9a2 2 0 002-1.8L20 7z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7l.5-2A2 2 0 0111.5 3h1a2 2 0 011.9 2L15 7"/></svg>
                         </template>
@@ -102,6 +102,12 @@ onMounted(() => {
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4h16v8H4zM10 12v8M14 12v8"/></svg>
                         </template>
                         Themes
+                    </NavLink>
+                    <NavLink :href="route('admin.modules.index')" :active="route().current('admin.modules.*')" :collapsed="sidebarCollapsed" label="Modules">
+                        <template #icon>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6h4M6 10h12M6 14h12M10 18h4"/></svg>
+                        </template>
+                        Modules
                     </NavLink>
                     <!-- Users -->
                     <NavGroup label="Users" :collapsed="sidebarCollapsed" :active="route().current('admin.users.*') || route().current('admin.roles.*')">

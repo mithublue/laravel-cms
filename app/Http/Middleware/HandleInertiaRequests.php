@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\Module;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -38,6 +39,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+            'modules' => fn () => Module::query()->pluck('enabled', 'name')->toArray(),
         ];
     }
 }
