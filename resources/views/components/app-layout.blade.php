@@ -9,15 +9,17 @@
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-800" x-data>
     <header class="bg-white border-b">
-        @includeIf('theme::partials.nav')
-        @unless (View::exists('theme::partials.nav'))
+        @php($menu = \App\Support\Cms::menu('primary'))
+        @if(View::exists('theme::partials.nav'))
+            @include('theme::partials.nav', ['items' => $menu])
+        @else
             <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
                 <a href="/" class="text-xl font-semibold">{{ config('app.name', 'My CMS') }}</a>
                 <nav class="space-x-4 text-sm">
                     <a href="/" class="hover:underline">Home</a>
                 </nav>
             </div>
-        @endunless
+        @endif
     </header>
 
     <main id="content" class="max-w-6xl mx-auto px-4 py-8">
