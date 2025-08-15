@@ -87,3 +87,10 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
     });
 
 require __DIR__.'/auth.php';
+
+// Pretty permalinks for root-level pages like /about, /blog
+// Place at the very end so it doesn't shadow other routes
+// Exclude reserved prefixes and only match a single path segment (no slashes)
+Route::get('/{slug}', [PublicController::class, 'page'])
+    ->where('slug', '^(?!admin|dashboard|profile|login|register|password|logout|pages|posts|news|products|api|storage|build|vendor)[A-Za-z0-9_-]+$')
+    ->name('permalink');

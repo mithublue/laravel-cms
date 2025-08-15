@@ -17,7 +17,8 @@ class TemplateResolver
             'theme::home',
             'theme::index',
         ];
-        return self::firstExisting($candidates, $data);
+        $title = config('app.name', 'Laravel CMS');
+        return self::firstExisting($candidates, array_merge($data, ['title' => $title]));
     }
 
     /**
@@ -28,6 +29,8 @@ class TemplateResolver
         Cms::setCurrentObject($page);
         $slug = self::slugFrom($page, ['title', 'name', 'slug']);
         $id = $page->id ?? null;
+        $t = $page->translation ?? ($page->translations->first() ?? null);
+        $title = $t->title ?? $t->name ?? 'Page';
         $candidates = [
             "theme::page-{$slug}",
             $id ? "theme::page-{$id}" : null,
@@ -35,7 +38,7 @@ class TemplateResolver
             'theme::singular',
             'theme::index',
         ];
-        return self::firstExisting(array_filter($candidates), array_merge($data, ['page' => $page]));
+        return self::firstExisting(array_filter($candidates), array_merge($data, ['page' => $page, 'title' => $title]));
     }
 
     /**
@@ -48,6 +51,8 @@ class TemplateResolver
         $slug = self::slugFrom($item, ['title', 'name', 'slug']);
         $id = $item->id ?? null;
         $type = Str::slug($type);
+        $t = $item->translation ?? ($item->translations->first() ?? null);
+        $title = $t->title ?? $t->name ?? ucfirst($type);
         $candidates = [
             "theme::{$type}-{$slug}",
             $id ? "theme::{$type}-{$id}" : null,
@@ -58,7 +63,7 @@ class TemplateResolver
             'theme::single',
             'theme::index',
         ];
-        return self::firstExisting(array_filter($candidates), array_merge($data, [$type => $item]));
+        return self::firstExisting(array_filter($candidates), array_merge($data, [$type => $item, 'title' => $title]));
     }
 
     /**
@@ -72,7 +77,11 @@ class TemplateResolver
         ];
         foreach ($candidates as $view) {
             if (\Illuminate\Support\Facades\View::exists($view)) {
-                return response()->view($view, $data, 404);
+                // For frame requests, still return the layout so Turbo can extract the matching frame
+                return response()->view('theme::layouts.app', array_merge($data, [
+                    'title' => 'Not Found',
+                    'content_view' => $view,
+                ]), 404);
             }
         }
         // As a last resort, fallback to a plain 404 response
@@ -83,7 +92,10 @@ class TemplateResolver
     {
         foreach ($candidates as $view) {
             if (View::exists($view)) {
-                return response()->view($view, $data, 200);
+                // For frame requests, still return the layout so Turbo can extract the matching frame
+                return response()->view('theme::layouts.app', array_merge($data, [
+                    'content_view' => $view,
+                ]), 200);
             }
         }
         // As a last resort, use a plain Laravel default
