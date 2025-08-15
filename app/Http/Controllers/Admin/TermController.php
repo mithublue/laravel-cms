@@ -85,15 +85,21 @@ class TermController extends Controller
             }
         }
 
-        $slug = $data['slug'] ? Str::slug($data['slug']) : Str::slug($data['name']);
+        // Handle optional slug safely when not provided in validated data
+        $slugInput = $data['slug'] ?? null;
+        $slug = $slugInput ? Str::slug($slugInput) : Str::slug($data['name']);
 
-        // Optional uniqueness validation per taxonomy + locale
-        $exists = TermTranslation::where('slug', $slug)
-            ->where('locale', $locale)
-            ->whereHas('term', function ($q) use ($taxonomy) { $q->where('taxonomy_id', $taxonomy->id); })
-            ->exists();
-        if ($exists) {
-            return response()->json(['message' => 'Slug already exists for this taxonomy and locale.'], 422);
+        // Ensure slug uniqueness per taxonomy + locale by auto-incrementing suffix if needed
+        $baseSlug = $slug;
+        $suffix = 2;
+        while (
+            TermTranslation::where('slug', $slug)
+                ->where('locale', $locale)
+                ->whereHas('term', function ($q) use ($taxonomy) { $q->where('taxonomy_id', $taxonomy->id); })
+                ->exists()
+        ) {
+            $slug = $baseSlug.'-'.$suffix;
+            $suffix++;
         }
 
         $term = Term::create([

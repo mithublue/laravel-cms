@@ -14,6 +14,7 @@ const loading = ref(true);
 const error = ref('');
 const taxonomies = ref([]); // [{ id, name, slug, scope, hierarchical, multiple, terms: [{value,label}], selected: [] }]
 const newTerm = ref({}); // map of taxonomy slug -> new term name
+const termError = ref({}); // map of taxonomy slug -> last error string
 
 async function fetchTaxonomies() {
   loading.value = true;
@@ -64,6 +65,7 @@ async function createTerm(tax) {
   const name = (newTerm.value?.[tax.slug] || '').trim();
   if (!name) return;
   try {
+    termError.value[tax.slug] = '';
     const res = await window.axios.post(route('admin.terms.store'), {
       scope: props.scope,
       taxonomy: tax.slug,
@@ -75,11 +77,22 @@ async function createTerm(tax) {
       tax.terms.push(opt);
       tax.selected = Array.from(new Set([...(tax.selected || []), item.id]));
       newTerm.value[tax.slug] = '';
+      termError.value[tax.slug] = '';
       emitCombined();
     }
   } catch (e) {
-    // Surface a simple error; detailed errors can be added later
-    alert('Failed to create term.');
+    // Prefer detailed validation messages when available
+    let message = e?.response?.data?.message;
+    const errors = e?.response?.data?.errors;
+    if (!message && errors && typeof errors === 'object') {
+      const firstKey = Object.keys(errors)[0];
+      if (firstKey && errors[firstKey]?.length) {
+        message = errors[firstKey][0];
+      }
+    }
+    termError.value[tax.slug] = message || 'Failed to create term.';
+    // Optional: keep alert for visibility
+    alert(termError.value[tax.slug]);
   }
 }
 
@@ -116,6 +129,7 @@ onMounted(fetchTaxonomies);
             Add
           </button>
         </div>
+        <div v-if="termError[tax.slug]" class="text-sm text-red-600">{{ termError[tax.slug] }}</div>
       </div>
     </div>
   </div>
