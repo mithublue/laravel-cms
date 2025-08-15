@@ -14,6 +14,7 @@ const loading = ref(true);
 const error = ref('');
 const taxonomies = ref([]); // [{ id, name, slug, scope, hierarchical, multiple, terms: [{value,label}], selected: [] }]
 const newTerm = ref({}); // map of taxonomy slug -> new term name
+const newParent = ref({}); // map of taxonomy slug -> parent_id
 const termError = ref({}); // map of taxonomy slug -> last error string
 
 async function fetchTaxonomies() {
@@ -30,7 +31,7 @@ async function fetchTaxonomies() {
           const res = await window.axios.get(route('admin.terms.index'), {
             params: { scope: props.scope, taxonomy: tax.slug },
           });
-          tax.terms = (res?.data?.data || []).map(item => ({ value: item.id, label: item.name || `#${item.id}` }));
+          tax.terms = (res?.data?.data || []).map(item => ({ value: item.id, label: item.name || `#${item.id}`, parent_id: item.parent_id }));
         } catch (e) {
           // isolate errors per taxonomy
         }
@@ -66,22 +67,27 @@ async function createTerm(tax) {
   if (!name) return;
   try {
     termError.value[tax.slug] = '';
-    const res = await window.axios.post(route('admin.terms.store'), {
+    const payload = {
       scope: props.scope,
       taxonomy: tax.slug,
       name,
-    });
+    };
+    // If hierarchical and parent selected, add parent_id
+    if (tax.hierarchical && newParent.value[tax.slug]) {
+      payload.parent_id = newParent.value[tax.slug];
+    }
+    const res = await window.axios.post(route('admin.terms.store'), payload);
     const item = res?.data?.data;
     if (item?.id) {
-      const opt = { value: item.id, label: item.name };
+      const opt = { value: item.id, label: item.name, parent_id: item.parent_id };
       tax.terms.push(opt);
       tax.selected = Array.from(new Set([...(tax.selected || []), item.id]));
       newTerm.value[tax.slug] = '';
+      newParent.value[tax.slug] = '';
       termError.value[tax.slug] = '';
       emitCombined();
     }
   } catch (e) {
-    // Prefer detailed validation messages when available
     let message = e?.response?.data?.message;
     const errors = e?.response?.data?.errors;
     if (!message && errors && typeof errors === 'object') {
@@ -91,7 +97,6 @@ async function createTerm(tax) {
       }
     }
     termError.value[tax.slug] = message || 'Failed to create term.';
-    // Optional: keep alert for visibility
     alert(termError.value[tax.slug]);
   }
 }
@@ -111,25 +116,68 @@ onMounted(fetchTaxonomies);
         <div class="flex items-center justify-between">
           <label class="text-sm font-medium text-gray-700">{{ tax.name }}</label>
         </div>
-        <TomMultiSelect
-          v-model="tax.selected"
-          :options="tax.terms"
-          :placeholder="`Select ${tax.name}`"
-          class="mt-1 block w-full"
-          @change="() => onSelectChange()"
-        />
-        <div class="flex items-center gap-2">
-          <input
-            v-model="newTerm[tax.slug]"
-            type="text"
-            :placeholder="`Add new ${tax.name}…`"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        <template v-if="tax.hierarchical">
+          <!-- Render terms as a tree -->
+          <div class="ml-2">
+            <template v-for="parent in tax.terms.filter(t => !t.parent_id)" :key="parent.value">
+              <div>
+                <label>
+                  <input type="checkbox" :value="parent.value" v-model="tax.selected" @change="onSelectChange" />
+                  {{ parent.label }}
+                </label>
+                <div class="ml-5" v-if="tax.terms.some(t => t.parent_id === parent.value)">
+                  <div v-for="child in tax.terms.filter(t => t.parent_id === parent.value)" :key="child.value">
+                    <label>
+                      <input type="checkbox" :value="child.value" v-model="tax.selected" @change="onSelectChange" />
+                      {{ child.label }}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+          <!-- Add new term UI for hierarchical taxonomy -->
+          <div class="mt-2 space-y-2">
+            <input
+              v-model="newTerm[tax.slug]"
+              type="text"
+              :placeholder="`Add new ${tax.name}…`"
+              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+            <div class="flex items-center gap-2">
+              <select v-model="newParent[tax.slug]" class="rounded-md border-gray-300">
+                <option value="">— Parent Category —</option>
+                <option v-for="opt in tax.terms" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+              </select>
+              <button type="button" @click="createTerm(tax)" class="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 border">
+                Add
+              </button>
+            </div>
+          </div>
+          <div v-if="termError[tax.slug]" class="text-sm text-red-600">{{ termError[tax.slug] }}</div>
+        </template>
+        <template v-else>
+          <!-- Non-hierarchical: keep multi-select UI -->
+          <TomMultiSelect
+            v-model="tax.selected"
+            :options="tax.terms"
+            :placeholder="`Select ${tax.name}`"
+            class="mt-1 block w-full"
+            @change="() => onSelectChange()"
           />
-          <button type="button" @click="createTerm(tax)" class="mt-1 inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 border">
-            Add
-          </button>
-        </div>
-        <div v-if="termError[tax.slug]" class="text-sm text-red-600">{{ termError[tax.slug] }}</div>
+          <div class="flex items-center gap-2">
+            <input
+              v-model="newTerm[tax.slug]"
+              type="text"
+              :placeholder="`Add new ${tax.name}…`"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+            <button type="button" @click="createTerm(tax)" class="mt-1 inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 border">
+              Add
+            </button>
+          </div>
+          <div v-if="termError[tax.slug]" class="text-sm text-red-600">{{ termError[tax.slug] }}</div>
+        </template>
       </div>
     </div>
   </div>

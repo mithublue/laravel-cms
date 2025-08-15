@@ -108,7 +108,7 @@ class NewsController extends Controller
             $item->terms()->sync([]);
         }
 
-        return redirect()->route('admin.news.index')->with('success', 'News created.');
+        return redirect()->route('admin.news.edit', $item)->with('success', 'News created.');
     }
 
     public function edit(News $news): Response
@@ -201,7 +201,7 @@ class NewsController extends Controller
             $news->terms()->sync([]);
         }
 
-        return redirect()->route('admin.news.index')->with('success', 'News updated.');
+        return redirect()->route('admin.news.edit', $news)->with('success', 'News updated.');
     }
 
     public function destroy(News $news)

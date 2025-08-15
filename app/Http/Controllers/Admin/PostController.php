@@ -112,7 +112,7 @@ class PostController extends Controller
             $post->terms()->sync([]);
         }
 
-        return redirect()->route('admin.posts.index')->with('success', 'Post created.');
+        return redirect()->route('admin.posts.edit', $post)->with('success', 'Post created.');
     }
 
     public function edit(Post $post): Response
@@ -208,7 +208,7 @@ class PostController extends Controller
             $post->terms()->sync([]);
         }
 
-        return redirect()->route('admin.posts.index')->with('success', 'Post updated.');
+        return redirect()->route('admin.posts.edit', $post)->with('success', 'Post updated.');
     }
 
     public function destroy(Post $post)

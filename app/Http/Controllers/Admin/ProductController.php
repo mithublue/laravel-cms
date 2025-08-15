@@ -126,7 +126,7 @@ class ProductController extends Controller
             $product->terms()->sync([]);
         }
 
-        return redirect()->route('admin.products.index')->with('success', 'Product created.');
+        return redirect()->route('admin.products.edit', $product)->with('success', 'Product created.');
     }
 
     public function edit(Product $product): Response
@@ -242,7 +242,7 @@ class ProductController extends Controller
             $product->terms()->sync([]);
         }
 
-        return redirect()->route('admin.products.index')->with('success', 'Product updated.');
+        return redirect()->route('admin.products.edit', $product)->with('success', 'Product updated.');
     }
 
     public function destroy(Product $product)
