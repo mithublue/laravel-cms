@@ -4,6 +4,7 @@ import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import RichTextEditor from '@/Components/RichTextEditor.vue';
 import FeaturedImageUploader from '@/Components/FeaturedImageUploader.vue';
+import TaxonomyManager from '@/Components/TaxonomyManager.vue';
 
 const props = defineProps({
   product: Object,
@@ -27,6 +28,7 @@ const form = useForm({
   visibility: props.product?.visibility || 'public',
   published_at: props.product?.published_at || '',
   featured_image: null,
+  terms: props.product?.term_ids || [],
 });
 
 function submit() {
@@ -80,7 +82,7 @@ const rightCollapsed = ref(false);
 
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Short Description</label>
-                  <textarea v-model="form.short_description" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <textarea v-model="form.short_description" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                   <div v-if="form.errors.short_description" class="mt-1 text-sm text-red-600">{{ form.errors.short_description }}</div>
                 </div>
 
@@ -192,6 +194,11 @@ const rightCollapsed = ref(false);
             <div class="bg-white p-6 shadow sm:rounded-lg">
               <FeaturedImageUploader v-model="form.featured_image" :existing-url="props.product?.featured_image_url || ''" />
               <div v-if="form.errors.featured_image" class="mt-1 text-sm text-red-600">{{ form.errors.featured_image }}</div>
+            </div>
+
+            <div class="bg-white p-6 shadow sm:rounded-lg">
+              <TaxonomyManager v-model="form.terms" scope="product" />
+              <div v-if="form.errors.terms" class="mt-1 text-sm text-red-600">{{ form.errors.terms }}</div>
             </div>
 
             <div class="bg-white p-4 shadow sm:rounded-lg flex items-center gap-3">

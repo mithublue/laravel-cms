@@ -29,7 +29,7 @@ class MenuSeeder extends Seeder
                 'title' => 'Home',
                 'url' => url('/'),
                 'order' => 1,
-                'target' => null,
+                'target' => '_self',
                 'classes' => null,
                 'rel' => null,
                 'meta' => [],

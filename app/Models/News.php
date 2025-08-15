@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Term;
 
 class News extends Model
 {
@@ -46,5 +47,17 @@ class News extends Model
     public function featuredImage()
     {
         return $this->belongsTo(Media::class, 'featured_image_id');
+    }
+
+    public function terms()
+    {
+        return $this->morphToMany(Term::class, 'termable', 'termables');
+    }
+
+    public function categories()
+    {
+        return $this->terms()->whereHas('taxonomy', function ($q) {
+            $q->where('scope', 'news')->where('slug', 'categories');
+        });
     }
 }

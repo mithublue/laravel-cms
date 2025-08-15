@@ -4,6 +4,7 @@ import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import RichTextEditor from '@/Components/RichTextEditor.vue';
 import FeaturedImageUploader from '@/Components/FeaturedImageUploader.vue';
+import TaxonomyManager from '@/Components/TaxonomyManager.vue';
 
 const props = defineProps({
   post: Object,
@@ -23,6 +24,7 @@ const form = useForm({
   excerpt: props.post?.excerpt || '',
   content: props.post?.content || '',
   featured_image: null,
+  terms: props.post?.term_ids || [],
 });
 
 function submit() {
@@ -73,7 +75,7 @@ function destroy() {
 
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Excerpt</label>
-                  <textarea v-model="form.excerpt" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <textarea v-model="form.excerpt" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                   <div v-if="form.errors.excerpt" class="mt-1 text-sm text-red-600">{{ form.errors.excerpt }}</div>
                 </div>
 
@@ -142,6 +144,11 @@ function destroy() {
             <div class="bg-white p-6 shadow sm:rounded-lg">
               <FeaturedImageUploader v-model="form.featured_image" :existing-url="props.post?.featured_image_url || ''" />
               <div v-if="form.errors.featured_image" class="mt-1 text-sm text-red-600">{{ form.errors.featured_image }}</div>
+            </div>
+
+            <div class="bg-white p-6 shadow sm:rounded-lg">
+              <TaxonomyManager v-model="form.terms" scope="post" />
+              <div v-if="form.errors.terms" class="mt-1 text-sm text-red-600">{{ form.errors.terms }}</div>
             </div>
 
             <div class="bg-white p-4 shadow sm:rounded-lg flex items-center gap-3">

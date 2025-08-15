@@ -62,6 +62,7 @@ onMounted(() => {
                         </template>
                         <NavLink :href="route('admin.posts.index')" :active="route().current('admin.posts.index')" :collapsed="false" label="All Posts">All Posts</NavLink>
                         <NavLink :href="route('admin.posts.create')" :active="route().current('admin.posts.create')" :collapsed="false" label="Add New Post">Add New Post</NavLink>
+                        <NavLink :href="route('admin.taxonomies.manage') + '?scope=post'" :active="route().current('admin.taxonomies.manage')" :collapsed="false" label="Taxonomies">Taxonomies</NavLink>
                         <NavLink :href="route('admin.posts.trash')" :active="route().current('admin.posts.trash')" :collapsed="false" label="Trash">Trash</NavLink>
                     </NavGroup>
 
@@ -72,6 +73,7 @@ onMounted(() => {
                         </template>
                         <NavLink :href="route('admin.news.index')" :active="route().current('admin.news.index')" :collapsed="false" label="All News">All News</NavLink>
                         <NavLink :href="route('admin.news.create')" :active="route().current('admin.news.create')" :collapsed="false" label="Add New News">Add New News</NavLink>
+                        <NavLink :href="route('admin.taxonomies.manage') + '?scope=news'" :active="route().current('admin.taxonomies.manage')" :collapsed="false" label="Taxonomies">Taxonomies</NavLink>
                         <NavLink :href="route('admin.news.trash')" :active="route().current('admin.news.trash')" :collapsed="false" label="Trash">Trash</NavLink>
                     </NavGroup>
 
@@ -82,6 +84,7 @@ onMounted(() => {
                         </template>
                         <NavLink :href="route('admin.products.index')" :active="route().current('admin.products.index')" :collapsed="false" label="All Products">All Products</NavLink>
                         <NavLink :href="route('admin.products.create')" :active="route().current('admin.products.create')" :collapsed="false" label="Add New Product">Add New Product</NavLink>
+                        <NavLink :href="route('admin.taxonomies.manage') + '?scope=product'" :active="route().current('admin.taxonomies.manage')" :collapsed="false" label="Taxonomies">Taxonomies</NavLink>
                         <NavLink :href="route('admin.products.trash')" :active="route().current('admin.products.trash')" :collapsed="false" label="Trash">Trash</NavLink>
                     </NavGroup>
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductTranslation;
 use App\Services\MediaService;
+use App\Models\Term;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
@@ -77,6 +78,8 @@ class ProductController extends Controller
             'visibility' => 'required|in:public,private',
             'published_at' => 'nullable|date',
             'featured_image' => 'nullable|image|max:5120',
+            'terms' => 'sometimes|array',
+            'terms.*' => 'integer',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['name']);
@@ -111,6 +114,18 @@ class ProductController extends Controller
             'description' => $data['description'] ?? null,
         ]);
 
+        // Sync terms (only terms within the 'product' scope)
+        $termIds = collect($request->input('terms', []))->filter()->map(fn($id) => (int) $id);
+        if ($termIds->isNotEmpty()) {
+            $allowedIds = Term::whereIn('id', $termIds)
+                ->whereHas('taxonomy', function ($q) { $q->where('scope', 'product'); })
+                ->pluck('id')
+                ->all();
+            $product->terms()->sync($allowedIds);
+        } else {
+            $product->terms()->sync([]);
+        }
+
         return redirect()->route('admin.products.index')->with('success', 'Product created.');
     }
 
@@ -138,6 +153,7 @@ class ProductController extends Controller
                 'visibility' => $product->visibility,
                 'published_at' => optional($product->published_at)?->format('Y-m-d\\TH:i'),
                 'featured_image_url' => optional($product->featuredImage)?->url(),
+                'term_ids' => $product->terms()->whereHas('taxonomy', function ($q) { $q->where('scope', 'product'); })->pluck('terms.id'),
             ],
         ]);
     }
@@ -170,6 +186,8 @@ class ProductController extends Controller
             'visibility' => 'required|in:public,private',
             'published_at' => 'nullable|date',
             'featured_image' => 'nullable|image|max:5120',
+            'terms' => 'sometimes|array',
+            'terms.*' => 'integer',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['name']);
@@ -210,6 +228,18 @@ class ProductController extends Controller
                 'short_description' => $data['short_description'] ?? null,
                 'description' => $data['description'] ?? null,
             ]);
+        }
+
+        // Sync terms (only terms within the 'product' scope)
+        $termIds = collect($request->input('terms', []))->filter()->map(fn($id) => (int) $id);
+        if ($termIds->isNotEmpty()) {
+            $allowedIds = Term::whereIn('id', $termIds)
+                ->whereHas('taxonomy', function ($q) { $q->where('scope', 'product'); })
+                ->pluck('id')
+                ->all();
+            $product->terms()->sync($allowedIds);
+        } else {
+            $product->terms()->sync([]);
         }
 
         return redirect()->route('admin.products.index')->with('success', 'Product updated.');
