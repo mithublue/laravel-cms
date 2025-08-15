@@ -1,8 +1,6 @@
-@extends('theme::layouts.app')
-
 @php($obj = \App\Support\Cms::get_current_obj())
 
-@section('content')
+<x-app-layout :title="$obj->title ?? $obj->name ?? 'Item'">
     <div class="prose max-w-none">
         <h1 class="mb-4">{{ $obj->title ?? $obj->name ?? 'Item' }}</h1>
         @if(!empty($obj->content))
@@ -16,4 +14,4 @@
             <p>Content coming soon.</p>
         @endif
     </div>
-@endsection
+</x-app-layout>
