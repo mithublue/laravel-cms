@@ -82,7 +82,7 @@ class PageController extends Controller
             'content' => $data['content'] ?? null,
         ]);
 
-        return redirect()->route('admin.pages.index')->with('success', 'Page created.');
+        return redirect()->route('admin.pages.edit', $page)->with('success', 'Page created.');
     }
 
     public function edit(Page $page): Response
@@ -144,7 +144,7 @@ class PageController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.pages.index')->with('success', 'Page updated.');
+        return redirect()->route('admin.pages.edit', $page)->with('success', 'Page updated.');
     }
 
     public function destroy(Page $page)

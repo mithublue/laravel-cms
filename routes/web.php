@@ -71,6 +71,14 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
         // Users
         Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['show']);
 
+        // Taxonomies & Terms (JSON endpoints for admin UI)
+        Route::get('taxonomies', [\App\Http\Controllers\Admin\TaxonomyController::class, 'index'])->name('taxonomies.index');
+        // Taxonomy management UI
+        Route::get('taxonomies/manage', [\App\Http\Controllers\Admin\TaxonomyController::class, 'manage'])->name('taxonomies.manage');
+        Route::post('taxonomies', [\App\Http\Controllers\Admin\TaxonomyController::class, 'store'])->name('taxonomies.store');
+        Route::get('terms', [\App\Http\Controllers\Admin\TermController::class, 'index'])->name('terms.index');
+        Route::post('terms', [\App\Http\Controllers\Admin\TermController::class, 'store'])->name('terms.store');
+
         // Roles (Admin only)
         Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class)
             ->except(['show'])

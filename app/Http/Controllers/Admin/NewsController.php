@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\News;
 use App\Models\NewsTranslation;
 use App\Services\MediaService;
+use App\Models\Term;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -66,6 +67,8 @@ class NewsController extends Controller
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
             'featured_image' => 'nullable|image|max:5120',
+            'terms' => 'sometimes|array',
+            'terms.*' => 'integer',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -93,7 +96,19 @@ class NewsController extends Controller
             'content' => $data['content'] ?? null,
         ]);
 
-        return redirect()->route('admin.news.index')->with('success', 'News created.');
+        // Sync terms (scope: news)
+        $termIds = collect($request->input('terms', []))->filter()->map(fn($id) => (int) $id);
+        if ($termIds->isNotEmpty()) {
+            $allowedIds = Term::whereIn('id', $termIds)
+                ->whereHas('taxonomy', function ($q) { $q->where('scope', 'news'); })
+                ->pluck('id')
+                ->all();
+            $item->terms()->sync($allowedIds);
+        } else {
+            $item->terms()->sync([]);
+        }
+
+        return redirect()->route('admin.news.edit', $item)->with('success', 'News created.');
     }
 
     public function edit(News $news): Response
@@ -112,6 +127,7 @@ class NewsController extends Controller
                 'published_at' => optional($news->published_at)?->format('Y-m-d\\TH:i'),
                 'is_featured' => (bool) $news->is_featured,
                 'featured_image_url' => optional($news->featuredImage)?->url(),
+                'term_ids' => $news->terms()->whereHas('taxonomy', function ($q) { $q->where('scope', 'news'); })->pluck('terms.id'),
             ],
         ]);
     }
@@ -136,6 +152,8 @@ class NewsController extends Controller
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
             'featured_image' => 'nullable|image|max:5120',
+            'terms' => 'sometimes|array',
+            'terms.*' => 'integer',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -171,7 +189,19 @@ class NewsController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.news.index')->with('success', 'News updated.');
+        // Sync terms (scope: news)
+        $termIds = collect($request->input('terms', []))->filter()->map(fn($id) => (int) $id);
+        if ($termIds->isNotEmpty()) {
+            $allowedIds = Term::whereIn('id', $termIds)
+                ->whereHas('taxonomy', function ($q) { $q->where('scope', 'news'); })
+                ->pluck('id')
+                ->all();
+            $news->terms()->sync($allowedIds);
+        } else {
+            $news->terms()->sync([]);
+        }
+
+        return redirect()->route('admin.news.edit', $news)->with('success', 'News updated.');
     }
 
     public function destroy(News $news)

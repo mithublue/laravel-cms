@@ -123,12 +123,8 @@ const SlashCommand = Extension.create({
     };
   },
   addProseMirrorPlugins() {
-    return [
-      Suggestion({
-        editor: this.editor,
-        ...this.options.suggestion,
-      }),
-    ];
+// Pass the editor instance to Suggestion to avoid undefined editor errors
+    return [Suggestion({ editor: this.editor, ...this.options.suggestion })];
   },
 });
 

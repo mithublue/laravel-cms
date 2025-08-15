@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\PostTranslation;
 use App\Models\Media;
 use App\Services\MediaService;
+use App\Models\Term;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -69,6 +70,8 @@ class PostController extends Controller
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
             'featured_image' => 'nullable|image|max:5120',
+            'terms' => 'sometimes|array',
+            'terms.*' => 'integer',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -97,7 +100,19 @@ class PostController extends Controller
             'content' => $data['content'] ?? null,
         ]);
 
-        return redirect()->route('admin.posts.index')->with('success', 'Post created.');
+        // Sync terms (only terms within the 'post' scope)
+        $termIds = collect($request->input('terms', []))->filter()->map(fn($id) => (int) $id);
+        if ($termIds->isNotEmpty()) {
+            $allowedIds = Term::whereIn('id', $termIds)
+                ->whereHas('taxonomy', function ($q) { $q->where('scope', 'post'); })
+                ->pluck('id')
+                ->all();
+            $post->terms()->sync($allowedIds);
+        } else {
+            $post->terms()->sync([]);
+        }
+
+        return redirect()->route('admin.posts.edit', $post)->with('success', 'Post created.');
     }
 
     public function edit(Post $post): Response
@@ -117,6 +132,7 @@ class PostController extends Controller
                 'is_pinned' => (bool) $post->is_pinned,
                 'allow_comments' => (bool) $post->allow_comments,
                 'featured_image_url' => optional($post->featuredImage)?->url(),
+                'term_ids' => $post->terms()->whereHas('taxonomy', function ($q) { $q->where('scope', 'post'); })->pluck('terms.id'),
             ],
         ]);
     }
@@ -142,6 +158,8 @@ class PostController extends Controller
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
             'featured_image' => 'nullable|image|max:5120',
+            'terms' => 'sometimes|array',
+            'terms.*' => 'integer',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -178,7 +196,19 @@ class PostController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.posts.index')->with('success', 'Post updated.');
+        // Sync terms (only terms within the 'post' scope)
+        $termIds = collect($request->input('terms', []))->filter()->map(fn($id) => (int) $id);
+        if ($termIds->isNotEmpty()) {
+            $allowedIds = Term::whereIn('id', $termIds)
+                ->whereHas('taxonomy', function ($q) { $q->where('scope', 'post'); })
+                ->pluck('id')
+                ->all();
+            $post->terms()->sync($allowedIds);
+        } else {
+            $post->terms()->sync([]);
+        }
+
+        return redirect()->route('admin.posts.edit', $post)->with('success', 'Post updated.');
     }
 
     public function destroy(Post $post)
