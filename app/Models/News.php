@@ -20,12 +20,14 @@ class News extends Model
         'visibility',
         'published_at',
         'is_featured',
+        'allow_comments',
         'options',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
         'is_featured' => 'boolean',
+        'allow_comments' => 'boolean',
         'options' => 'array',
     ];
 

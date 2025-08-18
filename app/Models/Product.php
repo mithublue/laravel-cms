@@ -28,6 +28,7 @@ class Product extends Model
         'status',
         'visibility',
         'published_at',
+        'allow_comments',
         'options',
     ];
 
@@ -36,6 +37,7 @@ class Product extends Model
         'manage_stock' => 'boolean',
         'backorder' => 'boolean',
         'dimensions' => 'array',
+        'allow_comments' => 'boolean',
         'options' => 'array',
         'price' => 'decimal:2',
         'sale_price' => 'decimal:2',

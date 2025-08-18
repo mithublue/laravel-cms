@@ -31,6 +31,7 @@ const form = useForm({
   terms: props.product?.term_ids || [],
   password_protected: props.product?.password_protected || false,
   password: '',
+  allow_comments: props.product?.allow_comments ?? true,
 });
 
 function submit() {
@@ -202,6 +203,10 @@ const rightCollapsed = ref(false);
                   <input v-model="form.password" type="password" autocomplete="new-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                   <div v-if="form.errors.password" class="mt-1 text-sm text-red-600">{{ form.errors.password }}</div>
                 </div>
+                <label class="inline-flex items-center gap-2 text-sm text-gray-700 pt-2">
+                  <input type="checkbox" v-model="form.allow_comments" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                  Allow comments
+                </label>
               </div>
             </div>
 

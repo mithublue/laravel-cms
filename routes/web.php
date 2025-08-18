@@ -100,6 +100,10 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
         Route::resource('modules', \App\Http\Controllers\Admin\ModuleController::class)
             ->only(['index','update'])
             ->middleware('role:Admin');
+
+        // Settings
+        Route::get('settings/general', [\App\Http\Controllers\Admin\SettingController::class, 'general'])->name('settings.general');
+        Route::post('settings/general', [\App\Http\Controllers\Admin\SettingController::class, 'updateGeneral'])->name('settings.general.update');
     });
 
 require __DIR__.'/auth.php';

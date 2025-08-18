@@ -115,6 +115,12 @@ onMounted(() => {
                         </template>
                         Modules
                     </NavLink>
+                    <NavLink :href="route('admin.settings.general')" :active="route().current('admin.settings.*')" :collapsed="sidebarCollapsed" label="Settings">
+                        <template #icon>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 3h2l1 3 3 1 2 3-2 3-3 1-1 3h-2l-1-3-3-1-2-3 2-3 3-1 1-3z"/></svg>
+                        </template>
+                        Settings
+                    </NavLink>
                     <!-- Users -->
                     <NavGroup label="Users" :collapsed="sidebarCollapsed" :active="route().current('admin.users.*') || route().current('admin.roles.*')">
                         <template #icon>

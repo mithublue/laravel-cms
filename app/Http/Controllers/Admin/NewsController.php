@@ -77,6 +77,7 @@ class NewsController extends Controller
             'visibility' => 'required|in:public,private',
             'published_at' => 'nullable|date',
             'is_featured' => 'boolean',
+            'allow_comments' => 'sometimes|boolean',
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
             'featured_image' => 'nullable|image|max:5120',
@@ -94,6 +95,7 @@ class NewsController extends Controller
             'visibility' => $data['visibility'],
             'published_at' => $data['published_at'] ?? null,
             'is_featured' => $data['is_featured'] ?? false,
+            'allow_comments' => $data['allow_comments'] ?? true,
             'options' => [
                 'password_protected' => (bool) ($data['password_protected'] ?? false),
                 'password' => !empty($data['password']) ? bcrypt($data['password']) : null,
@@ -145,6 +147,7 @@ class NewsController extends Controller
                 'visibility' => $news->visibility,
                 'published_at' => optional($news->published_at)?->format('Y-m-d\\TH:i'),
                 'is_featured' => (bool) $news->is_featured,
+                'allow_comments' => (bool) $news->allow_comments,
                 'featured_image_url' => optional($news->featuredImage)?->url(),
                 'term_ids' => $news->terms()->whereHas('taxonomy', function ($q) { $q->where('scope', 'news'); })->pluck('terms.id'),
                 'password_protected' => (bool) data_get($news->options, 'password_protected', false),
@@ -169,6 +172,7 @@ class NewsController extends Controller
             'visibility' => 'required|in:public,private',
             'published_at' => 'nullable|date',
             'is_featured' => 'boolean',
+            'allow_comments' => 'sometimes|boolean',
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
             'featured_image' => 'nullable|image|max:5120',
@@ -192,6 +196,7 @@ class NewsController extends Controller
             'visibility' => $data['visibility'],
             'published_at' => $data['published_at'] ?? null,
             'is_featured' => $data['is_featured'] ?? false,
+            'allow_comments' => $data['allow_comments'] ?? $news->allow_comments,
             'options' => $options,
         ]);
 

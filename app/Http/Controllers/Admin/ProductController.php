@@ -94,6 +94,7 @@ class ProductController extends Controller
             'terms.*' => 'integer',
             'password_protected' => 'sometimes|boolean',
             'password' => 'nullable|string|min:4|required_if:password_protected,true',
+            'allow_comments' => 'sometimes|boolean',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['name']);
@@ -112,6 +113,7 @@ class ProductController extends Controller
             'status' => $data['status'],
             'visibility' => $data['visibility'],
             'published_at' => $data['published_at'] ?? null,
+            'allow_comments' => $data['allow_comments'] ?? true,
             'options' => [
                 'password_protected' => (bool) ($data['password_protected'] ?? false),
                 'password' => !empty($data['password']) ? bcrypt($data['password']) : null,
@@ -173,6 +175,7 @@ class ProductController extends Controller
                 'featured_image_url' => optional($product->featuredImage)?->url(),
                 'term_ids' => $product->terms()->whereHas('taxonomy', function ($q) { $q->where('scope', 'product'); })->pluck('terms.id'),
                 'password_protected' => (bool) data_get($product->options, 'password_protected', false),
+                'allow_comments' => (bool) $product->allow_comments,
             ],
         ]);
     }
@@ -209,6 +212,7 @@ class ProductController extends Controller
             'terms.*' => 'integer',
             'password_protected' => 'sometimes|boolean',
             'password' => 'nullable|string|min:4',
+            'allow_comments' => 'sometimes|boolean',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['name']);
@@ -233,6 +237,7 @@ class ProductController extends Controller
             'status' => $data['status'],
             'visibility' => $data['visibility'],
             'published_at' => $data['published_at'] ?? null,
+            'allow_comments' => $data['allow_comments'] ?? $product->allow_comments,
             'options' => $options,
         ]);
 

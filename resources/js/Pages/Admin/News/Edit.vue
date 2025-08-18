@@ -20,6 +20,7 @@ const form = useForm({
   visibility: props.news?.visibility || 'public',
   published_at: props.news?.published_at || '',
   is_featured: props.news?.is_featured || false,
+  allow_comments: props.news?.allow_comments ?? true,
   excerpt: props.news?.excerpt || '',
   content: props.news?.content || '',
   featured_image: null,
@@ -146,6 +147,10 @@ function destroy() {
                 <label class="inline-flex items-center gap-2 text-sm text-gray-700">
                   <input type="checkbox" v-model="form.is_featured" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
                   Featured
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" v-model="form.allow_comments" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                  Allow comments
                 </label>
               </div>
             </div>
