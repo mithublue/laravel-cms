@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use App\Support\ThemeManager;
+use App\Support\Cms;
 use App\Models\Post;
 use App\Models\News;
 use App\Models\Product;
@@ -28,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // Apply locale from settings
+        app()->setLocale(Cms::setting('locale', config('app.locale')));
 
         // Register theme view namespace dynamically
         $active = ThemeManager::active();

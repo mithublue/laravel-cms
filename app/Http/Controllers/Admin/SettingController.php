@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Media;
 use App\Models\Setting;
 use App\Services\MediaService;
 use App\Support\Cms as CmsSupport;
@@ -39,6 +40,8 @@ class SettingController extends Controller
             'datetime_format' => ['required', 'string', 'max:50'],
             'logo' => ['nullable', 'image', 'max:5120'], // 5MB
             'favicon' => ['nullable', 'image', 'max:2048'], // 2MB
+            'logo_media_id' => ['nullable', 'integer', 'exists:media,id'],
+            'favicon_media_id' => ['nullable', 'integer', 'exists:media,id'],
         ]);
 
         // Persist primitive settings
@@ -55,18 +58,30 @@ class SettingController extends Controller
             Cache::forget('setting_'.$key);
         }
 
-        // Handle logo upload
+        // Handle logo (upload takes precedence over selecting existing)
         if ($request->hasFile('logo')) {
             $media = MediaService::storeFromUpload($request->file('logo'), $request->user()->id, 'uploads/'.date('Y/m'));
             Setting::updateOrCreate(['key' => 'site_logo'], ['value' => $media->url()]);
             Cache::forget('setting_site_logo');
+        } elseif (!empty($data['logo_media_id'])) {
+            $m = Media::find($data['logo_media_id']);
+            if ($m) {
+                Setting::updateOrCreate(['key' => 'site_logo'], ['value' => $m->url()]);
+                Cache::forget('setting_site_logo');
+            }
         }
 
-        // Handle favicon upload
+        // Handle favicon (upload takes precedence)
         if ($request->hasFile('favicon')) {
             $media = MediaService::storeFromUpload($request->file('favicon'), $request->user()->id, 'uploads/'.date('Y/m'));
             Setting::updateOrCreate(['key' => 'site_favicon'], ['value' => $media->url()]);
             Cache::forget('setting_site_favicon');
+        } elseif (!empty($data['favicon_media_id'])) {
+            $m = Media::find($data['favicon_media_id']);
+            if ($m) {
+                Setting::updateOrCreate(['key' => 'site_favicon'], ['value' => $m->url()]);
+                Cache::forget('setting_site_favicon');
+            }
         }
 
         return redirect()->route('admin.settings.general')->with('success', 'Settings updated successfully.');

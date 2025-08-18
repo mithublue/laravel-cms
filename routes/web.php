@@ -72,6 +72,7 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
         Route::resource('menus', \App\Http\Controllers\Admin\MenuController::class)->except(['show']);
         Route::post('menus/{menu}/sync-items', [\App\Http\Controllers\Admin\MenuItemSyncController::class, 'store'])->name('menus.sync-items');
         Route::post('media/upload', [\App\Http\Controllers\Admin\MediaUploadController::class, 'store'])->name('media.upload');
+        Route::get('media', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media.index');
 
         // Users
         Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['show']);

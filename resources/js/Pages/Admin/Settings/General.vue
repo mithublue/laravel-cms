@@ -28,11 +28,33 @@ const form = useForm({
   datetime_format: props.settings.datetime_format || 'Y-m-d H:i',
   logo: null,
   favicon: null,
+  // optional selected media ids from library (mutually exclusive with file upload)
+  logo_media_id: null,
+  favicon_media_id: null,
 });
 
 function submit() {
   form.post(route('admin.settings.general.update'), {
     forceFormData: true,
+    onSuccess: () => {
+      // Update global settings for reactive consumers
+      const s = window.cmsSettings || {}
+      s.site_name = form.site_name
+      s.tagline = form.tagline
+      s.locale = form.locale
+      s.datetime_format = form.datetime_format
+      // Note: logo/favicon URLs are only known after server persists; do a reload if they changed
+      window.cmsSettings = s
+      // Update document title immediately
+      try { document.title = form.site_name } catch (e) {}
+      // Notify listeners (e.g., ApplicationLogo) for immediate UI updates
+      try { window.dispatchEvent(new CustomEvent('cms:settings:updated', { detail: s })) } catch (e) {}
+
+      // If media changed (uploaded or selected), reload to refresh Blade-injected head (favicon) and locale
+      if (form.logo || form.favicon || form.logo_media_id || form.favicon_media_id) {
+        window.location.reload()
+      }
+    },
   });
 }
 
@@ -89,12 +111,26 @@ const rightCollapsed = ref(false);
             </div>
 
             <div class="bg-white p-6 shadow sm:rounded-lg">
-              <FeaturedImageUploader v-model="form.logo" :existing-url="props.settings.logo_url || ''" label="Logo" />
+              <FeaturedImageUploader
+                v-model="form.logo"
+                :existing-url="props.settings.logo_url || ''"
+                label="Logo"
+                :enable-library="true"
+                @file-selected="form.logo_media_id = null"
+                @select-existing="(item) => { form.logo_media_id = item?.id || null }"
+              />
               <div v-if="form.errors.logo" class="mt-1 text-sm text-red-600">{{ form.errors.logo }}</div>
             </div>
 
             <div class="bg-white p-6 shadow sm:rounded-lg">
-              <FeaturedImageUploader v-model="form.favicon" :existing-url="props.settings.favicon_url || ''" label="Favicon" />
+              <FeaturedImageUploader
+                v-model="form.favicon"
+                :existing-url="props.settings.favicon_url || ''"
+                label="Favicon"
+                :enable-library="true"
+                @file-selected="form.favicon_media_id = null"
+                @select-existing="(item) => { form.favicon_media_id = item?.id || null }"
+              />
               <div v-if="form.errors.favicon" class="mt-1 text-sm text-red-600">{{ form.errors.favicon }}</div>
             </div>
 
