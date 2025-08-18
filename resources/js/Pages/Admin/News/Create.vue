@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import RichTextEditor from '@/Components/RichTextEditor.vue';
 import FeaturedImageUploader from '@/Components/FeaturedImageUploader.vue';
 import TaxonomyManager from '@/Components/TaxonomyManager.vue';
@@ -16,11 +17,16 @@ const form = useForm({
   content: '',
   featured_image: null,
   terms: [],
+  password_protected: false,
+  password: '',
 });
 
 function submit() {
   form.post(route('admin.news.store'), { forceFormData: true });
 }
+
+// Right sidebar collapse state
+const rightCollapsed = ref(false);
 </script>
 
 <template>
@@ -34,10 +40,10 @@ function submit() {
     </template>
 
     <div class="py-6">
-      <div class="mx-auto max-w-6xl sm:px-6 lg:px-8">
-        <form @submit.prevent="submit" class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <form @submit.prevent="submit" :class="['grid grid-cols-1 gap-6', rightCollapsed ? 'lg:grid-cols-1' : 'lg:grid-cols-3']">
           <!-- Main -->
-          <div class="lg:col-span-2 space-y-4">
+          <div :class="[rightCollapsed ? 'lg:col-span-1' : 'lg:col-span-2', 'space-y-4']">
             <div class="bg-white p-6 shadow sm:rounded-lg">
               <div class="space-y-4">
                 <div>
@@ -62,8 +68,12 @@ function submit() {
           </div>
 
           <!-- Sidebar -->
-          <div class="space-y-6">
+          <div class="space-y-6" v-show="!rightCollapsed">
             <div class="bg-white p-6 shadow sm:rounded-lg space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-gray-700">Options</h3>
+                <button type="button" @click="rightCollapsed = true" class="text-xs text-gray-500 hover:text-gray-700">Hide »</button>
+              </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700">Slug (optional)</label>
                 <input v-model="form.slug" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
@@ -98,6 +108,18 @@ function submit() {
                 <div v-if="form.errors.published_at" class="mt-1 text-sm text-red-600">{{ form.errors.published_at }}</div>
               </div>
 
+              <div class="space-y-2">
+                <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" v-model="form.password_protected" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                  Password protect
+                </label>
+                <div v-if="form.password_protected">
+                  <label class="block text-sm font-medium text-gray-700">Password</label>
+                  <input v-model="form.password" type="password" autocomplete="new-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <div v-if="form.errors.password" class="mt-1 text-sm text-red-600">{{ form.errors.password }}</div>
+                </div>
+              </div>
+
               <div class="flex items-center gap-6">
                 <label class="inline-flex items-center gap-2 text-sm text-gray-700">
                   <input type="checkbox" v-model="form.is_featured" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
@@ -122,6 +144,14 @@ function submit() {
             </div>
           </div>
         </form>
+        <!-- Floating button to show sidebar when collapsed -->
+        <button
+          v-if="rightCollapsed"
+          type="button"
+          @click="rightCollapsed = false"
+          class="fixed bottom-6 right-6 rounded-full bg-white shadow px-3 py-2 text-sm text-gray-700 border hover:bg-gray-50"
+          title="Show sidebar"
+        >« Show Sidebar</button>
       </div>
     </div>
   </AuthenticatedLayout>

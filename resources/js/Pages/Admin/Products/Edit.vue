@@ -29,6 +29,8 @@ const form = useForm({
   published_at: props.product?.published_at || '',
   featured_image: null,
   terms: props.product?.term_ids || [],
+  password_protected: props.product?.password_protected || false,
+  password: '',
 });
 
 function submit() {
@@ -188,6 +190,18 @@ const rightCollapsed = ref(false);
                 <label class="block text-sm font-medium text-gray-700">Publish at</label>
                 <input v-model="form.published_at" type="datetime-local" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 <div v-if="form.errors.published_at" class="mt-1 text-sm text-red-600">{{ form.errors.published_at }}</div>
+              </div>
+
+              <div class="space-y-2">
+                <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" v-model="form.password_protected" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                  Password protect
+                </label>
+                <div v-if="form.password_protected">
+                  <label class="block text-sm font-medium text-gray-700">Password</label>
+                  <input v-model="form.password" type="password" autocomplete="new-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <div v-if="form.errors.password" class="mt-1 text-sm text-red-600">{{ form.errors.password }}</div>
+                </div>
               </div>
             </div>
 
