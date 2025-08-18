@@ -9,6 +9,7 @@ const props = defineProps({
 });
 
 const search = ref(props.filters?.search || '');
+const status = ref(props.filters?.status || '');
 const selected = ref([]);
 const allSelected = computed(() => props.pages?.data?.length && selected.value.length === props.pages.data.length);
 
@@ -26,8 +27,14 @@ function bulkTrash() {
   router.post(route('admin.pages.bulk-destroy'), { ids: selected.value }, { preserveScroll: true, preserveState: true });
 }
 
-watch(search, (value) => {
-  router.get(route('admin.pages.index'), { search: value }, { preserveState: true, replace: true });
+watch([search, status], ([s, st]) => {
+  const params = { search: s };
+  if (st === 'trashed') {
+    router.get(route('admin.pages.trash'), params, { preserveState: true, replace: true });
+    return;
+  }
+  if (st) params.status = st;
+  router.get(route('admin.pages.index'), params, { preserveState: true, replace: true });
 });
 </script>
 
@@ -44,8 +51,22 @@ watch(search, (value) => {
     <div class="py-6">
       <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div class="bg-white p-4 shadow sm:rounded-lg">
-          <div class="mb-4">
-            <input v-model="search" type="text" placeholder="Search pages..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+          <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Filter by status</label>
+              <select v-model="status" class="block w-full sm:w-56 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <option value="">All statuses</option>
+                <option value="draft">Draft</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="published">Published</option>
+                <option value="archived">Archived</option>
+                <option value="trashed">Trashed</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs font-medium text-gray-600 mb-1">Search</label>
+              <input v-model="search" type="text" placeholder="Search pages..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+            </div>
           </div>
 
           <div class="mb-3 flex items-center gap-2">
@@ -83,8 +104,10 @@ watch(search, (value) => {
                   <td class="px-3 py-2 text-sm text-gray-700">{{ page.status }}</td>
                   <td class="px-3 py-2 text-sm text-gray-700">{{ page.visibility }}</td>
                   <td class="px-3 py-2 text-sm text-gray-700">{{ page.published_at || '-' }}</td>
-                  <td class="px-3 py-2 text-right text-sm">
+                  <td class="px-3 py-2 text-right text-sm space-x-2">
+                    <Link v-if="page.public_url" :href="page.public_url" target="_blank" class="text-gray-700 hover:text-gray-900">View</Link>
                     <Link :href="route('admin.pages.edit', page.id)" class="text-indigo-600 hover:text-indigo-900">Edit</Link>
+                    <button @click="router.delete(route('admin.pages.destroy', page.id), { preserveScroll: true })" class="text-red-600 hover:text-red-800">Trash</button>
                   </td>
                 </tr>
               </tbody>

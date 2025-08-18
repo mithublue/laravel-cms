@@ -9,9 +9,31 @@ use App\Models\TermTranslation;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class TermController extends Controller
 {
+    /**
+     * Inertia page to manage terms per scope (choose taxonomy, list terms, delete, etc.).
+     */
+    public function manage(Request $request)
+    {
+        $scope = $request->query('scope');
+        $validScopes = ['post', 'news', 'product'];
+        if ($scope && !in_array($scope, $validScopes, true)) {
+            $scope = null; // ignore invalid
+        }
+
+        $taxonomies = Taxonomy::when($scope, fn($q) => $q->where('scope', $scope))
+            ->orderBy('name')
+            ->get(['id','name','slug','scope','hierarchical','multiple']);
+
+        return Inertia::render('Admin/Terms/Manage', [
+            'scope' => $scope,
+            'taxonomies' => $taxonomies,
+        ]);
+    }
+
     /**
      * List terms for a given taxonomy and scope. Supports optional search.
      */
@@ -125,5 +147,34 @@ class TermController extends Controller
                 'slug' => $slug,
             ]
         ], 201);
+    }
+
+    /**
+     * Delete a term and unsync it from any related items. Soft delete to preserve history.
+     */
+    public function destroy(Request $request, Term $term)
+    {
+        $request->validate([
+            'scope' => ['required','in:post,news,product'],
+        ]);
+
+        // Ensure the term belongs to the requested scope
+        $term->load('taxonomy');
+        if (!$term->taxonomy || $term->taxonomy->scope !== $request->string('scope')->toString()) {
+            abort(404);
+        }
+
+        // Detach relations (unsync) then soft delete
+        $term->posts()->detach();
+        $term->news()->detach();
+        $term->products()->detach();
+
+        $term->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Term deleted.']);
+        }
+
+        return back()->with('success', 'Term deleted.');
     }
 }

@@ -41,7 +41,8 @@ function addFromSource(item) {
     classes: null,
     rel: null,
     linkable_type: null,
-    linkable_id: item.id,
+    // Only set linkable_id when it's a numeric id (pages/posts/news/products). For archives it's a string, so keep null.
+    linkable_id: typeof item.id === 'number' ? item.id : null,
     meta: {},
     children: [],
   });
@@ -173,6 +174,16 @@ function saveMenu() {
               <div>
                 <button type="button" @click="addCustomLink" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Add to Menu</button>
               </div>
+            </div>
+
+            <div class="bg-white p-4 shadow sm:rounded-lg space-y-2" v-if="sources?.archives?.length">
+              <h3 class="text-sm font-semibold text-gray-700">Archives</h3>
+              <ul class="divide-y divide-gray-100">
+                <li v-for="a in sources.archives" :key="'archive-'+a.id" class="flex items-center justify-between py-1 text-sm">
+                  <span class="truncate pr-2">{{ a.title }}</span>
+                  <button type="button" @click="addFromSource(a)" class="rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200">Add</button>
+                </li>
+              </ul>
             </div>
 
             <div class="bg-white p-4 shadow sm:rounded-lg space-y-2" v-if="sources?.pages?.length">

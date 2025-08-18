@@ -88,6 +88,24 @@ class TemplateResolver
         return response('Not Found', 404);
     }
 
+    /**
+     * Render an archive/index for a given post type (e.g., post, news, product)
+     * Hierarchy tries: archive-{type}, {type}-archive, {type}-index, archive, index
+     */
+    public static function renderArchive(string $type, array $data = [])
+    {
+        $type = Str::slug($type);
+        $title = ucfirst(Str::plural($type));
+        $candidates = [
+            "theme::archive-{$type}",
+            "theme::{$type}-archive",
+            "theme::{$type}-index",
+            'theme::archive',
+            'theme::index',
+        ];
+        return self::firstExisting(array_filter($candidates), array_merge($data, ['title' => $title]));
+    }
+
     protected static function firstExisting(array $candidates, array $data)
     {
         foreach ($candidates as $view) {

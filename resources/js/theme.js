@@ -69,6 +69,18 @@ addEventListener('turbo:frame-load', (e) => {
     try { Alpine.initTree(frame); } catch (e) { /* noop */ }
     updateTitleFromMeta(frame);
     annotateLinks(document);
+    // Ensure address bar reflects the frame's URL as well
+    try {
+      const src = frame.getAttribute('src');
+      if (src) {
+        const newUrl = new URL(src, window.location.origin);
+        const current = window.location.pathname + window.location.search + window.location.hash;
+        const next = newUrl.pathname + newUrl.search + newUrl.hash;
+        if (next !== current) {
+          history.pushState({ turboFrame: 'content' }, '', next);
+        }
+      }
+    } catch (_) { /* noop */ }
   }
 });
 
@@ -80,6 +92,8 @@ document.addEventListener('click', (event) => {
   if (isModified) return;
   const href = anchor.getAttribute('href');
   if (!href || href.startsWith('#') || anchor.hasAttribute('download') || anchor.getAttribute('target') === '_blank') return;
+  // Respect opt-out
+  if (anchor.dataset.turbo === 'false') return;
   const url = new URL(href, window.location.origin);
   if (url.origin !== window.location.origin) return;
   // Ignore clicks within the content frame (Turbo will handle)
@@ -88,6 +102,18 @@ document.addEventListener('click', (event) => {
   if (!frame) return;
   // Prevent default navigation and drive the frame instead
   event.preventDefault();
-  // Preserve path + query + hash; let Turbo Frames handle history via data-turbo-action="advance"
-  frame.setAttribute('src', url.pathname + url.search + url.hash);
+  // Preserve path + query + hash and push to history so the URL updates
+  const newPath = url.pathname + url.search + url.hash;
+  try { history.pushState({ turboFrame: 'content' }, '', newPath); } catch (_) { /* noop */ }
+  frame.setAttribute('src', newPath);
 }, true);
+
+// Handle back/forward buttons by reloading the frame content to match the URL
+window.addEventListener('popstate', () => {
+  try {
+    const frame = document.getElementById('content');
+    if (!frame) return;
+    const currentPath = window.location.pathname + window.location.search + window.location.hash;
+    frame.setAttribute('src', currentPath);
+  } catch (_) { /* noop */ }
+});

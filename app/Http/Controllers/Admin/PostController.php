@@ -27,6 +27,12 @@ class PostController extends Controller
             });
         }
 
+        // Optional status filter
+        $status = $request->string('status')->toString();
+        if (in_array($status, ['draft', 'scheduled', 'published', 'archived'])) {
+            $query->where('status', $status);
+        }
+
         $posts = $query
             ->orderByDesc('id')
             ->paginate(10)
@@ -41,6 +47,12 @@ class PostController extends Controller
                     'published_at' => optional($post->published_at)?->toDateTimeString(),
                     'is_pinned' => (bool) $post->is_pinned,
                     'allow_comments' => (bool) $post->allow_comments,
+                    // Build public URL using translation slug if available; fallback to slugified title; null if neither
+                    'public_url' => (function () use ($post) {
+                        $slug = optional($post->translation)->slug
+                            ?? (optional($post->translation)->title ? \Illuminate\Support\Str::slug($post->translation->title) : null);
+                        return $slug ? route('posts.show', $slug) : null;
+                    })(),
                 ];
             });
 
@@ -48,6 +60,7 @@ class PostController extends Controller
             'posts' => $posts,
             'filters' => [
                 'search' => $request->get('search'),
+                'status' => $request->get('status'),
             ],
         ]);
     }
@@ -72,6 +85,8 @@ class PostController extends Controller
             'featured_image' => 'nullable|image|max:5120',
             'terms' => 'sometimes|array',
             'terms.*' => 'integer',
+            'password_protected' => 'sometimes|boolean',
+            'password' => 'nullable|string|min:4|required_if:password_protected,true',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -83,6 +98,10 @@ class PostController extends Controller
             'published_at' => $data['published_at'] ?? null,
             'is_pinned' => $data['is_pinned'] ?? false,
             'allow_comments' => $data['allow_comments'] ?? true,
+            'options' => [
+                'password_protected' => (bool) ($data['password_protected'] ?? false),
+                'password' => !empty($data['password']) ? bcrypt($data['password']) : null,
+            ],
         ]);
 
         // Handle featured image upload
@@ -133,6 +152,7 @@ class PostController extends Controller
                 'allow_comments' => (bool) $post->allow_comments,
                 'featured_image_url' => optional($post->featuredImage)?->url(),
                 'term_ids' => $post->terms()->whereHas('taxonomy', function ($q) { $q->where('scope', 'post'); })->pluck('terms.id'),
+                'password_protected' => (bool) data_get($post->options, 'password_protected', false),
             ],
         ]);
     }
@@ -160,9 +180,17 @@ class PostController extends Controller
             'featured_image' => 'nullable|image|max:5120',
             'terms' => 'sometimes|array',
             'terms.*' => 'integer',
+            'password_protected' => 'sometimes|boolean',
+            'password' => 'nullable|string|min:4',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
+
+        $options = $post->options ?? [];
+        $options['password_protected'] = (bool) ($data['password_protected'] ?? false);
+        if (!empty($data['password'])) {
+            $options['password'] = bcrypt($data['password']);
+        }
 
         $post->update([
             'status' => $data['status'],
@@ -170,6 +198,7 @@ class PostController extends Controller
             'published_at' => $data['published_at'] ?? null,
             'is_pinned' => $data['is_pinned'] ?? false,
             'allow_comments' => $data['allow_comments'] ?? true,
+            'options' => $options,
         ]);
 
         // Handle featured image upload

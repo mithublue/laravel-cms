@@ -26,6 +26,12 @@ class ProductController extends Controller
             })->orWhere('sku', 'like', "%{$search}%");
         }
 
+        // Optional status filter
+        $status = $request->string('status')->toString();
+        if (in_array($status, ['draft', 'scheduled', 'published', 'archived'])) {
+            $query->where('status', $status);
+        }
+
         $products = $query
             ->orderByDesc('id')
             ->paginate(10)
@@ -40,6 +46,11 @@ class ProductController extends Controller
                     'status' => $product->status,
                     'visibility' => $product->visibility,
                     'stock_qty' => $product->stock_qty,
+                    'public_url' => (function () use ($product) {
+                        $slug = optional($product->translation)->slug
+                            ?? (optional($product->translation)->name ? Str::slug($product->translation->name) : null);
+                        return $slug ? route('products.show', $slug) : null;
+                    })(),
                 ];
             });
 
@@ -47,6 +58,7 @@ class ProductController extends Controller
             'products' => $products,
             'filters' => [
                 'search' => $request->get('search'),
+                'status' => $request->get('status'),
             ],
         ]);
     }
@@ -80,6 +92,8 @@ class ProductController extends Controller
             'featured_image' => 'nullable|image|max:5120',
             'terms' => 'sometimes|array',
             'terms.*' => 'integer',
+            'password_protected' => 'sometimes|boolean',
+            'password' => 'nullable|string|min:4|required_if:password_protected,true',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['name']);
@@ -98,6 +112,10 @@ class ProductController extends Controller
             'status' => $data['status'],
             'visibility' => $data['visibility'],
             'published_at' => $data['published_at'] ?? null,
+            'options' => [
+                'password_protected' => (bool) ($data['password_protected'] ?? false),
+                'password' => !empty($data['password']) ? bcrypt($data['password']) : null,
+            ],
         ]);
 
         if ($request->hasFile('featured_image')) {
@@ -154,6 +172,7 @@ class ProductController extends Controller
                 'published_at' => optional($product->published_at)?->format('Y-m-d\\TH:i'),
                 'featured_image_url' => optional($product->featuredImage)?->url(),
                 'term_ids' => $product->terms()->whereHas('taxonomy', function ($q) { $q->where('scope', 'product'); })->pluck('terms.id'),
+                'password_protected' => (bool) data_get($product->options, 'password_protected', false),
             ],
         ]);
     }
@@ -188,9 +207,18 @@ class ProductController extends Controller
             'featured_image' => 'nullable|image|max:5120',
             'terms' => 'sometimes|array',
             'terms.*' => 'integer',
+            'password_protected' => 'sometimes|boolean',
+            'password' => 'nullable|string|min:4',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['name']);
+
+        // Update options for password protection
+        $options = $product->options ?? [];
+        $options['password_protected'] = (bool) ($data['password_protected'] ?? false);
+        if (!empty($data['password'])) {
+            $options['password'] = bcrypt($data['password']);
+        }
 
         $product->update([
             'sku' => $data['sku'],
@@ -205,6 +233,7 @@ class ProductController extends Controller
             'status' => $data['status'],
             'visibility' => $data['visibility'],
             'published_at' => $data['published_at'] ?? null,
+            'options' => $options,
         ]);
 
         if ($request->hasFile('featured_image')) {

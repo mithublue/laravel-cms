@@ -54,4 +54,24 @@ class PublicController extends Controller
         abort_unless($product, 404);
         return \App\Support\TemplateResolver::renderSingle('product', $product, compact('product'));
     }
+
+    // Archives
+    public function postsIndex()
+    {
+        $posts = Post::with(['translation', 'translations'])->latest()->paginate(10);
+        return \App\Support\TemplateResolver::renderArchive('post', compact('posts'));
+    }
+
+    public function newsIndex()
+    {
+        $newsItems = News::with(['translation', 'translations'])->latest()->paginate(10);
+        // Expose as $news in templates
+        return \App\Support\TemplateResolver::renderArchive('news', ['news' => $newsItems]);
+    }
+
+    public function productsIndex()
+    {
+        $products = Product::with(['translation', 'translations'])->latest()->paginate(12);
+        return \App\Support\TemplateResolver::renderArchive('product', compact('products'));
+    }
 }

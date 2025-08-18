@@ -106,6 +106,11 @@ class MenuController extends Controller
                 'posts' => $posts,
                 'news' => $news,
                 'products' => $products,
+                'archives' => [
+                    [ 'id' => 'posts-archive', 'title' => 'Posts Archive', 'url' => route('posts.index') ],
+                    [ 'id' => 'news-archive', 'title' => 'News Archive', 'url' => route('news.index') ],
+                    [ 'id' => 'products-archive', 'title' => 'Products Archive', 'url' => route('products.index') ],
+                ],
             ],
         ]);
     }

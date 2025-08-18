@@ -9,6 +9,11 @@ use Inertia\Inertia;
 // Public themed routes
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/pages/{slug}', [PublicController::class, 'page'])->middleware('module:pages')->name('pages.show');
+// Archives (must be registered before slug routes)
+Route::get('/posts', [PublicController::class, 'postsIndex'])->middleware('module:posts')->name('posts.index');
+Route::get('/news', [PublicController::class, 'newsIndex'])->middleware('module:news')->name('news.index');
+Route::get('/products', [PublicController::class, 'productsIndex'])->middleware('module:products')->name('products.index');
+// Singles
 Route::get('/posts/{slug}', [PublicController::class, 'post'])->middleware('module:posts')->name('posts.show');
 Route::get('/news/{slug}', [PublicController::class, 'news'])->middleware('module:news')->name('news.show');
 Route::get('/products/{slug}', [PublicController::class, 'product'])->middleware('module:products')->name('products.show');
@@ -76,8 +81,11 @@ Route::middleware(['auth', 'verified', 'role:Admin|Editor'])
         // Taxonomy management UI
         Route::get('taxonomies/manage', [\App\Http\Controllers\Admin\TaxonomyController::class, 'manage'])->name('taxonomies.manage');
         Route::post('taxonomies', [\App\Http\Controllers\Admin\TaxonomyController::class, 'store'])->name('taxonomies.store');
+        // Terms management UI and endpoints
+        Route::get('terms/manage', [\App\Http\Controllers\Admin\TermController::class, 'manage'])->name('terms.manage');
         Route::get('terms', [\App\Http\Controllers\Admin\TermController::class, 'index'])->name('terms.index');
         Route::post('terms', [\App\Http\Controllers\Admin\TermController::class, 'store'])->name('terms.store');
+        Route::delete('terms/{term}', [\App\Http\Controllers\Admin\TermController::class, 'destroy'])->name('terms.destroy');
 
         // Roles (Admin only)
         Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class)

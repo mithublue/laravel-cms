@@ -24,6 +24,12 @@ class PageController extends Controller
             });
         }
 
+        // Optional status filter
+        $status = $request->string('status')->toString();
+        if (in_array($status, ['draft', 'scheduled', 'published', 'archived'])) {
+            $query->where('status', $status);
+        }
+
         $pages = $query
             ->orderByDesc('id')
             ->paginate(10)
@@ -36,6 +42,12 @@ class PageController extends Controller
                     'status' => $page->status,
                     'visibility' => $page->visibility,
                     'published_at' => optional($page->published_at)?->toDateTimeString(),
+                    // Build public URL using translation slug if available; fallback to slugified title; null if neither
+                    'public_url' => (function () use ($page) {
+                        $slug = optional($page->translation)->slug
+                            ?? (optional($page->translation)->title ? \Illuminate\Support\Str::slug($page->translation->title) : null);
+                        return $slug ? route('pages.show', $slug) : null;
+                    })(),
                 ];
             });
 
@@ -43,6 +55,7 @@ class PageController extends Controller
             'pages' => $pages,
             'filters' => [
                 'search' => $request->get('search'),
+                'status' => $request->get('status'),
             ],
         ]);
     }
@@ -62,6 +75,8 @@ class PageController extends Controller
             'published_at' => 'nullable|date',
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
+            'password_protected' => 'sometimes|boolean',
+            'password' => 'nullable|string|min:4|required_if:password_protected,true',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -71,6 +86,10 @@ class PageController extends Controller
             'status' => $data['status'],
             'visibility' => $data['visibility'],
             'published_at' => $data['published_at'] ?? null,
+            'options' => [
+                'password_protected' => (bool) ($data['password_protected'] ?? false),
+                'password' => !empty($data['password']) ? bcrypt($data['password']) : null,
+            ],
         ]);
 
         PageTranslation::create([
@@ -99,6 +118,7 @@ class PageController extends Controller
                 'status' => $page->status,
                 'visibility' => $page->visibility,
                 'published_at' => optional($page->published_at)?->format('Y-m-d\\TH:i'),
+                'password_protected' => (bool) data_get($page->options, 'password_protected', false),
             ],
         ]);
     }
@@ -116,14 +136,23 @@ class PageController extends Controller
             'published_at' => 'nullable|date',
             'excerpt' => 'nullable|string',
             'content' => 'nullable|string',
+            'password_protected' => 'sometimes|boolean',
+            'password' => 'nullable|string|min:4',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
+
+        $options = $page->options ?? [];
+        $options['password_protected'] = (bool) ($data['password_protected'] ?? false);
+        if (!empty($data['password'])) {
+            $options['password'] = bcrypt($data['password']);
+        }
 
         $page->update([
             'status' => $data['status'],
             'visibility' => $data['visibility'],
             'published_at' => $data['published_at'] ?? null,
+            'options' => $options,
         ]);
 
         if ($translation) {

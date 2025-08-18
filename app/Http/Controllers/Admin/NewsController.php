@@ -26,6 +26,12 @@ class NewsController extends Controller
             });
         }
 
+        // Optional status filter
+        $status = $request->string('status')->toString();
+        if (in_array($status, ['draft', 'scheduled', 'published', 'archived'])) {
+            $query->where('status', $status);
+        }
+
         $news = $query
             ->orderByDesc('id')
             ->paginate(10)
@@ -39,6 +45,12 @@ class NewsController extends Controller
                     'visibility' => $item->visibility,
                     'published_at' => optional($item->published_at)?->toDateTimeString(),
                     'is_featured' => (bool) $item->is_featured,
+                    // Build public URL using translation slug if available; fallback to slugified title; null if neither
+                    'public_url' => (function () use ($item) {
+                        $slug = optional($item->translation)->slug
+                            ?? (optional($item->translation)->title ? Str::slug($item->translation->title) : null);
+                        return $slug ? route('news.show', $slug) : null;
+                    })(),
                 ];
             });
 
@@ -46,6 +58,7 @@ class NewsController extends Controller
             'news' => $news,
             'filters' => [
                 'search' => $request->get('search'),
+                'status' => $request->get('status'),
             ],
         ]);
     }
@@ -69,6 +82,8 @@ class NewsController extends Controller
             'featured_image' => 'nullable|image|max:5120',
             'terms' => 'sometimes|array',
             'terms.*' => 'integer',
+            'password_protected' => 'sometimes|boolean',
+            'password' => 'nullable|string|min:4|required_if:password_protected,true',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
@@ -79,6 +94,10 @@ class NewsController extends Controller
             'visibility' => $data['visibility'],
             'published_at' => $data['published_at'] ?? null,
             'is_featured' => $data['is_featured'] ?? false,
+            'options' => [
+                'password_protected' => (bool) ($data['password_protected'] ?? false),
+                'password' => !empty($data['password']) ? bcrypt($data['password']) : null,
+            ],
         ]);
 
         // Handle featured image upload
@@ -128,6 +147,7 @@ class NewsController extends Controller
                 'is_featured' => (bool) $news->is_featured,
                 'featured_image_url' => optional($news->featuredImage)?->url(),
                 'term_ids' => $news->terms()->whereHas('taxonomy', function ($q) { $q->where('scope', 'news'); })->pluck('terms.id'),
+                'password_protected' => (bool) data_get($news->options, 'password_protected', false),
             ],
         ]);
     }
@@ -154,15 +174,25 @@ class NewsController extends Controller
             'featured_image' => 'nullable|image|max:5120',
             'terms' => 'sometimes|array',
             'terms.*' => 'integer',
+            'password_protected' => 'sometimes|boolean',
+            'password' => 'nullable|string|min:4',
         ]);
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
+
+        // Update options for password protection
+        $options = $news->options ?? [];
+        $options['password_protected'] = (bool) ($data['password_protected'] ?? false);
+        if (!empty($data['password'])) {
+            $options['password'] = bcrypt($data['password']);
+        }
 
         $news->update([
             'status' => $data['status'],
             'visibility' => $data['visibility'],
             'published_at' => $data['published_at'] ?? null,
             'is_featured' => $data['is_featured'] ?? false,
+            'options' => $options,
         ]);
 
         // Handle featured image upload
